@@ -1,0 +1,657 @@
+1
+Tactile-based Multimodal Fusion in Embodied
+Intelligence: A Survey of Vision, Language, and
+Contact-Driven Paradigms
+Zhixiang Cao, Di Tian, Runwei Guan∗, Yanzhou Mu, Xiaolou Sun, Shaofeng Liang, Daizong Liu, Yutao Yue, Henghui Ding, Bin Fang, Alex Zhou, and Hui Xiong∗, Fellow, IEEE
+Abstract—Tactile sensing is a fundamental modality for embodied intelligence, offering unique and direct feedback on contact geometry, material properties, and interaction dynamics that remote sensors cannot replace. However, unimodal tactile perception is inherently limited by its sparse spatial coverage and lack of global semantic context. With the recent explosion in deep learning and large language models, integrating tactile with vision and language has become essential to bridge physical interaction with semantic reasoning, leading to the emergence of Multimodal Tactile Fusion. Despite rapid progress, the existing researches remain fragmented across disparate datasets, sensing modalities, and tasks, lacking a unified theoretical framework. To address this gap, this paper provides a comprehensive and systematic survey of multimodal tactile fusion research up to the first quarter of 2026. We propose a hierarchical taxonomy that organizes the field into two primary dimensions: multimodal datasets and multimodal methods. On the data side, we categorize resources ranging from Tactile-Vision datasets, Tactile-Language datasets, Tactile-Vision-Language datasets, and Tactile-VisionOther datasets. On the method side, we structure prior work into three core pillars: (1) Multimodal Perception and Recognition, which focuses on object understanding and grasp prediction; (2) Cross-Modal Generation, focusing on bidirectional translation between tactile, vision, and text; and (3) Multimodal Interaction, emphasizing feedback control and language-guided manipulation. Furthermore, we summarize representative tactile sensing hardware, review commonly used evaluation metrics and benchmark settings, and discuss current challenges and promising future directions. This survey aims to consolidate the current research landscape and provide a clear foundation for the development of more general, scalable, and robust tactile fusion systems. Paper collection is at Wayne-coding/Multimodal-Tactile-Fusion.
+Index Terms—Multimodal tactile fusion; Embodied intelligence; Multimodal foundation models; Robotic manipulation; Tactile sensors.
+I. INTRODUCTION
+Tactile perception is a cornerstone of embodied intelligence, bridging the gap between passive observation and active phys
+Zhixiang Cao is with School of Electronic Science and Engineering, Xi’an Jiaotong University, China. Runwei Guan, Di Tian, Shaofeng Liang, Yutao Yue and Hui Xiong are with Thrust of Artificial Intelligence, The Hong Kong University of Science and Technology (Guangzhou), China. Yanzhou Mu is with State Key Laboratory for Novel Software Technology, Nanjing University, China. Xiaolou Sun is with Purple Mountain Laboratory, China. Daizong Liu is with Institute for Math & AI, Wuhan University, China. Bin Fang is with School of Artificial Intelligence, Beijing University of Posts and Telecommunications, China. Henghui Ding is with Institute of Big Data, Fudan University, China. Alex Zhou is with Linkerbot (Beijing) Technology Co., Ltd, China. ∗Corresponding author: {runwayrwguan, xionghui}@hkust-gz.edu.cn
+ical interaction. Unlike distal modalities such as vision, touch provides direct and proximal feedback on surface texture, material properties, and contact dynamics, which is critical for resolving visual ambiguity. For embodied agents, tactile feedback is not merely a supplementary modality but a fundamental component of the perception–action loop, enabling precise manipulation and stable grasping in contact-rich environments. The integration of multisensory cues, especially the synergy between vision and touch, is therefore essential for building robust perception and control systems that allow agents to operate effectively in the physical world. Inspired by biological systems, tactile sensing has become an important component of robotic embodiment and computational intelligence. Recent studies [1, 2, 3, 4, 5, 6, 7, 8, 9] have increasingly explored the integration of tactile signals with vision [10], language [5], and other modalities such as audio or action streams [11]. This trend has advanced several important directions, including dexterous manipulation with closedloop vision–tactile feedback [11], physical property estimation of texture, compliance, and local geometry [12, 13], and embodied systems in which tactile experience provides physical grounding for semantic reasoning. These developments highlight the growing role of tactile information in connecting high-level perception with effective physical interaction. Meanwhile, advances in Deep Learning (DL) have further accelerated multimodal tactile fusion. Beyond conventional architectures [14], Reinforcement Learning (RL) and Transformer-based models [15] have shown strong capability in modeling complex dependencies within high-dimensional sensory streams. More recently, Large Language Models (LLMs) and multimodal foundation models [16, 17] have pushed the field toward more unified representations, coupling tactile perception with semantic reasoning and action. These advances provide an important foundation for building general-purpose tactile systems [3] that can operate in unstructured real-world environments. As illustrated in the hierarchical taxonomy (Fig. 1), we systematically organize multimodal tactile fusion into three primary pillars: Multimodal Datasets, Multimodal Methods, and Tactile Sensors. The dataset pillar provides a comprehensive overview of available resources, including Tactile-Vision datasets, Tactile-Language datasets, Tactile-Vision-Language datasets, and Tactile-Vision-Other datasets that incorporate additional modalities such as action, audio, or proprioception. The method pillar is structured into three core research cate
+
+
+2
+Introduction (§1)
+Preliminary (§2)
+Dataset (§3)
+Method (§4)
+Evaluation (§6)
+Challenges and Future Directions(§7)
+Conclusion (§8)
+动作库.svg
+Preliminary
+(Section 2) Language
+Dataset
+(Section 3)
+Method
+(Section 4)
+Evaluation
+(Section 6)
+Challenges and Future Directions
+(Section 7)
+Input Modalities
+Vision Tactile Language Encoder Action
+Class
+Multimodal Perception and Recognition
+Cross-Modal Generation and Transformation
+Multimodal Interaction and Manipulation
+Collection
+T-tensor
+L-tensor
+V-tensor
+Fusion
+Robot Human Simulation
+1 Tactile-Vision Dataset
+2 Tactile-Language Dataset
+3 Tactile-Vision-Language Dataset
+4 Tactile-Vision-Other Dataset
+transform control
+predict
+Vision
+Tactile Class
+Vision
+Tactile Language
+Vision
+Tactile Language
+Challenges Future Directions
+Data Fragmentation
+& Scalability
+Evaluation metrics Benchmarks
+Tactile Sensors
+(Section 5)
+Perception Generation Manipulation
+1
+2
+3
+Acc., Prec., Re., F1.,mAP... Success Rate, loU, Angle Error, L1 Distance...
+MSE, PSNR, SSIM, FlD, ...
+Modality Misalignment
+& Noise
+Hardware-Software
+Integration Barriers Evaluation & Benchmark
+Inconsistencies
+Unified Scalable
+Datasets Hierarchical Fusion
+Architectures
+Bio-Inspired
+Sensor Innovations
+End-to-End
+Embodied Systems
+Wearable Tactile Systems
+Handheld and Fingertip Sensors
+Gripper-Mounted & Integrated Sensors
+Robotic Skin and Sensor Patches
+Tactile Sensors(§5)
+Fig. 1: Overview of the structure of this survey on multimodal tactile fusion.
+gories: (1) Multimodal Perception and Recognition, covering tasks, such as material understanding, grasp-related prediction, and cross-modal retrieval; (2) Multimodal Cross-Modal Generation and Transformation, focusing on bidirectional generation and translation between tactile signals and other modalities; and (3) Multimodal Interaction and Manipulation, emphasizing contact-rich control and language-guided robotic manipulation. In parallel, the hardware pillar categorizes tactile sensing platforms into four groups according to their physical embodiment and deployment settings: wearable tactile systems, handheld and fingertip sensors, robotic skin and multimodal sensor patches, and gripper-mounted and integrated sensors. This structured perspective spans the full pipeline from hardware transduction to high-level reasoning, allowing us to examine current limitations and outline future directions toward general-purpose tactile intelligence.
+Fig. 2 provides an overview of the representative datasets and methods discussed in this survey. Organized by major taxonomy categories and chronological order, the figure highlights the developmental trajectory of multimodal tactile fusion and shows how the field has expanded across perception, generation, and interaction tasks. Compared with the existing surveys [18, 19], which mainly focus on specific modality pairs or model families, our taxonomy provides a broader system-level view of multimodal tactile fusion by linking data resources, learning methods, sensing hardware, and embodied interaction within a unified perspective. This formulation helps clarify the current research landscape and supports the later discussion of open challenges and future research directions.
+In summary, the contributions of this survey are as follows:
+• Novel Perspective. To the best of the authors’ knowledge, this is the first survey dedicated to multimodal tactile fu
+
+
+3
+VITO-Transformer
+UVTS
+UniTouch
+TouchAndGo
+Tactile-vlm
+BVT
+Octopi1.5
+STOLA
+CLTP
+RA-Touch VTV-LLM
+ACVTM
+SFA
+Making sense
+VTT
+Visuotactile-RL
+ViTacFormer TLA
+Touch in the wild
+AnyTouch
+TEVG
+OmniVTA
+OmniVTLA
+DreamTacVLA
+VLA-Touch
+VTLA
+DexTac
+VTAM
+2022 2019
+2024
+2018
+2019
+2022
+2025
+2025
+DAMF CLTP
+AnyTouch VHTformer
+DT-Transformer TVT-Transformer
+TLV-Link
+ConViTac
+Surformer v1 Surformer v2
+STLV-Align ViTaPEs
+ObjectAttrRecogn
+2025
+Octopi
+MViTac
+VLA-Touch
+UniTouch
+Tactile-vlm
+2024
+2023
+2022
+TouchAndGo
+2020
+LLCL
+2018
+ACVTM ViTac
+2017 2016
+TFOS
+CLAF
+VT
+CLAF
+VT
+Feeling of Success
+Multimodal Grasp
+VisGel Dataset
+ACVTM
+Touch and Go
+TouchClothing
+CFV dataset
+Touch in the Wild
+PhysiCLeAR
+TCL3D Dataset
+STOLA Dataset
+TVL-Dataset
+TLV Dataset MMWand
+TacQuad
+ImageNet-T
+Touch100k
+HTV Dataset
+MSDO Dataset
+VTV150K
+ObjectFolder
+ObjectFolder 2.0
+TLA
+FreeTacMan
+ObjectFolder-Real
+OpenTouch
+Hoi!
+VinT-6D
+ObjTac
+OmniViTac
+2017
+2018
+2019
+2024
+2025
+2021
+2022
+2023
+2025
+2016
+2024
+2025
+2022
+2023
+2025
+2026
+LVTR
+CTAV
+2026
+VTLG
+Fig. 2: Overview of representative datasets, methods in multimodal tactile fusion.
+sion, offering a unified perspective on how tactile signals are incorporated into multimodal systems. • Clear Taxonomy. We introduce a hierarchical taxonomy that organizes multimodal tactile fusion from three perspectives: multimodal datasets, multimodal methods, and tactile sensors, together with fine-grained subcategories. • Comprehensive Review. We thoroughly examine representative datasets, model architectures and applications developed up to the first quarter of 2026, summarizing key methodologies and recent technical progress. • Future Directions. We identify current limitations, discuss open challenges, and outline promising directions for advancing general-purpose multimodal tactile systems.
+Paper Organization. As shown in Fig. 1, the remainder of this survey is organized as follows. Section II introduces the preliminary foundations of multimodal tactile fusion, including input modalities, representation pipelines, and fusion mechanisms. Section III reviews multimodal tactile datasets across different sensing modalities and data collection settings. Section IV presents a systematic taxonomy and analysis of multimodal tactile fusion methods. Section V surveys tactile sensing technologies and sensor designs that underpin data acquisition and physical interaction. Section VI summarizes evaluation metrics and benchmarks used across perception, generation, and manipulation tasks. Section VII discusses open challenges and future research directions. Finally, Section VIII concludes this survey.
+II. PRELIMINARY
+A. Problem Scope and Definition
+Multimodal tactile fusion [1, 2, 3, 4, 5, 6, 7, 8, 9] studies how tactile information is integrated with other modalities to support perception, generation, and interaction in robotic systems. In this survey, we focus on settings in which tactile sensing plays a central role and is combined with vision and/or language. Specifically, we consider the bimodal settings
+T-V and T-L, as well as the trimodal setting T-V-L. Recent studies [2, 3, 4, 5, 6, 7] have increasingly adopted the T-V-L setting because it provides a unified framework for connecting physical interaction, visual context, and semantic reasoning. From a modeling perspective, multimodal tactile fusion can be viewed as a multi-stage pipeline that maps physical interaction signals to computational representations. Unlike vision or language, tactile signals are inherently contact-driven and arise only through physical interaction. Accordingly, the multimodal tactile fusion process can be described by the following hierarchical stages.
+1) Physical Transduction and Spatiotemporal Observation: During interaction, tactile sensors convert physical stimuli such as deformation, force, or vibration into digital signals. The raw inputs can be written as
+xt ∈ RSt×Tt×Ct , xv ∈ RSv×Tv×Cv , xl ∈ V L, (1)
+where xt denotes tactile observations with spatial configuration St, temporal length Tt, and channel dimension Ct, while xv and xl denote visual and language inputs, respectively.
+2) Modality-Specific Representation Learning: Because different modalities have heterogeneous input formats, each modality is encoded into a latent representation:
+zm = Em(xm; θm), m ∈ {t, v, l}, (2)
+where Em(·) denotes a modality-specific encoder. This step transforms tactile, visual, and language inputs into learned representations, yielding zt, zv, zl ∈ Rd when all three modalities are available.
+3) Cross-Modal Fusion and Joint Representation: The resulting unimodal representations are then integrated into a shared joint representation for downstream learning:
+zjoint = Φ({zm}m∈M; θΦ), (3)
+where M ⊆ {t, v, l} denotes the set of available modalities, and Φ(·) denotes the fusion operator. Depending on the
+
+
+4
+method, this operator may be implemented by feature concatenation, cross-attention, or alignment-based learning.
+4) Embodied Decoding and Task Execution: Finally, the fused representation is decoded for downstream tasks:
+y = D(zjoint; θD), (4)
+where y may denote a perception output, a generated crossmodal signal, or an action output for robotic control. Within this framework, multimodal tactile fusion aims to learn complementary representations that overcome the limitations of single-modality perception and support more robust embodied decision-making.
+B. Conceptual Background
+1) Modalities and Encoders: Multimodal tactile fusion mainly involves tactile, visual, and language signals. Tactile inputs encode local geometry, texture, force, and contact dynamics, while visual inputs provide global shape and scene context. Language adds semantic descriptions of object properties, materials, and actions, linking tactile observations to high-level concepts or instructions. To integrate these heterogeneous modalities, recent methods usually adopt modalityspecific encoders. Tactile and visual streams often use CNNor Transformer-based backbones, such as ResNet [20] and ViT [21], whereas language is commonly modeled with pretrained text encoders such as BERT [22] or OpenCLIP [23]. In many recent studies, the vision and language branches are initialized with pre-trained models to provide stronger semantic priors and improve cross-modal alignment.
+2) Tactile Sensor Taxonomy: From an engineering perspective, tactile sensors can be characterized along three dimensions [24, 25, 26, 27]. Structurally, they include single-point, array-based, and distributed designs. Mechanistically, piezoresistive, capacitive, piezoelectric, optical, and electromagnetic principles offer different trade-offs in sensitivity, spatial resolution, and dynamic response. In addition, substrate designincluding rigid, flexible, or hybrid forms—affects the balance between sensing precision and physical compliance. These hardware differences directly influence the quality of tactile signals used in downstream multimodal fusion.
+3) Tactile Signal Acquisition and Representation: Despite their hardware diversity, tactile sensors generally follow a common transduction pipeline [28, 29]. Contact-induced physical stimuli, such as pressure, deformation, or vibration, are converted into measurable electrical or optical signals. For example, vision-based tactile sensors capture surface deformations as image-like observations, making them naturally compatible with standard visual backbones. After basic signal conditioning, including amplification, filtering, and digitization, these raw measurements are mapped into task-specific latent representations through handcrafted features or end-to-end neural encoders. This process highlights that tactile observations, unlike distal vision or language, are inherently contactdriven and physically grounded, and their representations are strongly affected by both sensor morphology and interaction dynamics.
+4) Representative Mainstream Tactile Sensors: Fig. 3 compares representative tactile sensors along four dimensions: sensor architecture, geometric reconstruction capability, physical interaction quantification, and integration or task-level advantages. Here, we briefly summarize the core characteristics of several widely used platforms. a) GelSight [30]: GelSight is a representative visionbased tactile sensor that uses a camera and a soft gel surface to capture high-resolution contact deformations. It is particularly effective for fine surface reconstruction and detailed sensing of normal and shear cues. b) DIGIT [31]: DIGIT is a compact fingertip tactile sensor designed for low-cost deployment and practical integration. Its main advantage lies in preserving detailed contact imaging within a small and lightweight form factor. c) Tac3D [32]: Tac3D emphasizes stereo tactile sensing and 3D contact reconstruction. It also supports force and friction estimation, making it useful for grasp analysis. d) GelStereo 2.0 [33]: GelStereo 2.0 focuses on accurate stereo tactile perception. Its main strengths include reliable 3D depth estimation, refraction-aware reconstruction, and simplified calibration. e) GelSlim [34]: GelSlim is a slim tactile sensor for robotic fingers. It combines contact shape imaging with force and slip sensing, while remaining easy to mount on grippers. f) OmniTact [35]: OmniTact is designed for curved fingertip sensing with multiple internal views. This structure enables omnidirectional contact perception and coverage. g) STS [36]: STS integrates visual and tactile sensing within a shared optical setup. Its main advantage is that it supports spatially aligned visual and tactile perception through a switchable sensing mode.
+5) Fusion, Alignment, and Training Paradigms: A key challenge in multimodal tactile fusion [37] is how to combine heterogeneous tactile, visual, and language representations, and how to optimize the resulting models effectively. Existing methods [1, 2, 3, 4, 5, 6, 7, 8, 9, 38, 39] differ not only in where and how modalities are fused, but also in how crossmodal alignment is enforced and how the models are trained. a) Early fusion and late fusion: Early fusion combines modalities at the input level or shallow feature level, which encourages joint representation learning but is often more sensitive to noise, modality imbalance, or missing inputs. By contrast, late fusion merges modality-specific representations after separate encoding, thereby preserving modality-specific structure and offering greater flexibility for downstream decisionmaking.
+b) Shared embedding spaces, cross-attention, and contrastive alignment: Many methods map tactile, visual, and language features into a common embedding space to support cross-modal matching, retrieval, or representation alignment. More recent models further employ cross-attention to capture fine-grained interactions across tactile patches, visual regions, and language tokens. In addition, contrastive learning is widely used to pull paired samples closer and push unpaired samples apart, providing an effective objective for T-V, T-L, and T-V-L representation learning.
+
+
+5
+GelSight
+Camera + soft gel surface
+Normal & shear deformation
+High-detail surface shape
+Fine texture sensing
+DIGIT
+Small fingertip sensor
+Low-cost hardware
+High-detail contact image
+Easy to mount
+Tac3D
+Stereo tactile cameras
+Force & friction maps
+3D contact shape
+Grasp analysis
+OmniTact
+Curved fingertip surface
+All-direction contact sensing
+Multiple camera views
+Side + tip coverage
+GelSlim
+Slim finger design
+Force & slip sensing
+Contact shape imaging
+Robust mounting
+STS
+Shared vision & touch camera
+Switchable sensing mode
+Semi-transparent surface
+Aligned view & resolution
+GelStereo 2.0
+Stereo optical sensing
+Light refraction correction
+Accurate 3D depth
+Simple calibration
+LEGEND
+Integration, Calibration,
+or Task-Level Advantage
+Physical Interaction
+Quantification (Force, Slip, Friction)
+Geometric or Spatial
+Reconstruction Capability
+Sensor Architecture or
+Optical/Mechanical Design
+Fig. 3: Representative tactile sensors.
+c) Supervised learning and transfer-based adaptation: Supervised learning remains a common strategy for tasks with explicit labels, such as recognition and classification, but it is often constrained by the high cost of tactile data collection and annotation. To reduce this dependence, many methods adopt pre-training and transfer learning, where vision and language branches are initialized from large pre-trained models and then adapted to tactile tasks through supervised fine-tuning or taskspecific adaptation.
+d) Curriculum learning, reinforcement learning, and hybrid strategies: For contact-rich interaction tasks, curriculum learning can improve optimization stability by gradually increasing task difficulty, while reinforcement learning is widely used when dense supervision is unavailable and tactile feedback is important for policy learning. In practice, many recent systems adopt hybrid strategies that combine pre-training, supervised fine-tuning, and reinforcement learning to balance generalization, data efficiency, and control performance.
+6) Survey Methodology and Publication Trend: We survey multimodal tactile fusion studies by collecting papers from major journals and conferences in robotics, computer vision, haptics, and multimodal learning, and retain works that combine tactile sensing with at least one additional modality under data-driven or learning-based settings. As shown in Fig. 4, the number of relevant publications has increased steadily over the past decade, with a clear acceleration after 2020. Early studies were mainly reported in robotics and haptics venues, whereas more recent works have spread to broader vision and multimodal communities, reflecting the growing recognition of tactile sensing as an essential modality for multimodal perception, interaction, and embodied intelligence.
+III. MULTIMODAL DATASETS
+Datasets play a central role in multimodal tactile fusion because they pair tactile observations with complementary
+Fig. 4: Publication trend of multimodal tactile fusion papers from 2015 to 2026.
+modalities, enabling the learning of cross-modal correspondence, semantic grounding, and interaction-aware representations that cannot be obtained from touch alone.
+In this survey, we organize existing datasets into four groups according to modality composition: T-V, T-L, T-V-L, and T-VO, where “O” includes signals such as action, audio, and proprioception. This modality-based taxonomy reflects the evolution of the field from early bimodal benchmarks to more recent large-scale and semantically richer datasets. In the following, we review representative datasets in each group and summarize their sensing setups, scale, and supported tasks.
+
+
+6
+TABLE I: Comparative summary for the datasets of tactile-based multimodal fusion.
+Category Dataset Year Object inst. Scale Modalities Source Real Environment Sensor Type
+T-V
+VT [40] 2016 18 - ✓ Indoor DIY Feeling of Success [41] 2017 106 9.3k ✓ Lab G CLAF [42] 2017 118 2950 ✓ Indoor G ACVTM [43] 2018 65 18070 ✓ Indoor G Multimodal Grasp [44] 2019 10 2550 ✓ Lab G VisGel [45] 2019 195 3M ✓ Indoor + Lab G Touch and Go [46] 2022 3971 13.9k ✓ Indoor + Outdoor G TouchClothing [47] 2023 20 4k ✓ Indoor G CFV [48] 2023 89 150k ✓ Indoor DIY Touch in the Wild [49] 2025 - 2.6m ✓ Indoor + Outdoor DIY
+T-L
+PhysiCLeAR [50] 2024 74 408 ✓ Lab G TCL3D [5] 2025 117 50k ✓ Lab + Virtual D STOLA [51] 2025 14 - ✓ xx xx
+T-V-L
+TVL Dataset [3] 2024 - 44k ✓ Lab + Outdoor D MMWand [52] 2024 102 5.2k ✓ Lab + Indoor G TLV [4] 2024 - 20k ✓ Indoor D TacQuad [9] 2025 124 72k ✓ Indoor + Outdoor G D T ImageNet-T[13] 2025 - 150k ✓ Web images None Touch100k [6] 2025 4166 100k ✓ Lab G HTV [53] 2025 17 850 ✓ Lab G VTV150K [8] 2025 100 150k ✓ Lab G D T MSDO [54] 2025 18 1800 ✓ Lab D ObjTac [55] 2025 56 135k ✓ Lab D
+T-V-O
+ObjectFolder [56] 2021 100 - ✗ Virtual S ObjectFolder 2.0 [57] 2022 1000 - ✗ Virtual S ObjectFolder-Real [58] 2023 100 - ✓ Indoor G TLA [59] 2025 - 24k ✓ Lab G FreeTacMan [60] 2025 50 3m ✓ Lab DIY OpenTouch [61] 2025 8000 - ✓ Outdoor DIY Hoi! [62] 2025 381 - ✓ Indoor D VinT-6D [63] 2025 10 2.1m ✓ Indoor DIY OmniViTac [64] 2026 126 - ✓ Indoor DIY Input: audio, touch, action, language, vision. Source: Human, Robot, Simulation, Sensor: G GelSight, D DIGIT, T Tac3D, G GelStereo, S Simulated Category: T-V: Tactile-Vision; T-L: Tactile-Language; T-V-L: Tactile-Vision-Language; T-V-O: Tactile-Vision-Other.
+A. Tactile-Vision Datasets
+T-V datasets form an important empirical basis for multimodal tactile research by pairing visual observations with contact-induced tactile responses. Early datasets, including the VT dataset [40], Feeling of Success [41], CLAF [42], and ACVTM [43], mainly focused on controlled robotic grasping with high-resolution sensors such as GelSight to reduce visual ambiguity in object recognition and grasp prediction. To support cross-modal synthesis and joint representation learning, later datasets such as Multimodal Grasp [44] and VisGel [45] expanded the diversity of interactions across household objects. More recently, the paradigm has shifted toward less constrained and more complex physical interactions. Touch and Go [46] captures free-form human exploration in the wild, whereas TouchClothing [47] and CFV [48] target specialized interactions with deformable garments and articulated objects, respectively. This progression from controlled laboratory settings to more realistic environments is further reflected in recent large-scale benchmarks such as Touch in the Wild [49] and TacQuad [9], which provide large amounts of aligned multi-sensor data for generalized T-V fusion.
+B. Tactile-Language Datasets
+T-L datasets directly align tactile observations with natural language, enabling semantic grounding without relying on visual observations. Existing datasets mainly map tactile perception to property-level or concept-level semantics. For example, PhysiCLeAR [50] annotates GelSight videos with humandescribed physical attributes such as hardness and roughness to support material understanding. Extending to spatial representations, TCL3D [5] pairs 3D tactile point clouds and rendered images with language descriptions to ground contact geometry explicitly. Moving beyond predefined attributes, STOLA [51] associates tactile signals with open-ended and commonsense descriptions to support more advanced tactile reasoning. Compared with vision-centered datasets, T-L datasets place greater emphasis on semantic abstraction, interpretability, and linguistic supervision. Although their scale is still limited, they are important for tasks such as tactile captioning and languagegrounded representation learning, bridging the critical gap between physical transduction and high-level semantic reasoning.
+C. Tactile-Vision-Language Datasets
+T-V-L datasets combine visual observations, tactile signals, and natural language annotations, providing the most seman
+
+
+7
+tically expressive setting for multimodal tactile fusion. By jointly aligning perception, contact, and language, they support cross-modal alignment, multimodal reasoning, and languagegrounded tactile representation learning. Early T-V-L datasets mainly establish tri-modal alignment in controlled settings. The TVL dataset [3] and the TLV dataset [4] align DIGIT-based tactile signals, RGB images, and sentence-level descriptions through structured annotation pipelines. MMWand [52] extends this setting to multimodal interaction sequences collected with a handheld device equipped with visual, force, and tactile sensors, together with humanannotated language descriptions. More recent datasets improve scale, semantic richness, and temporal coverage. Touch100k [6] expands T-V-L alignment to more than 100,000 samples and provides both fine-grained phrases and longer natural language descriptions. The dataset introduced in DAMF [53] provides high-quality tri-modal data under controlled interactions for evaluating T-V-L fusion. VTV150K [8] introduces large-scale visual-tactile video data with tactile attribute annotations, enabling temporal modeling, while MSDO [54] provides standardized T-V-L triplets for object-level recognition under real-world variability. In addition, ImageNet-T [13], although it does not include physical tactile measurements, serves as a tactile-aware visionlanguage resource by enriching images with material- and texture-oriented descriptions. Overall, T-V-L datasets show a clear shift toward larger, semantically richer, and more temporally structured datasets that better connect perception, language, and interaction.
+D. Tactile-Vision-Other Datasets
+T-V-O datasets extend T-V settings by incorporating additional modalities such as audio, action, force, or proprioception. Here, “Other” denotes signals that capture interaction dynamics, embodiment, or environmental feedback beyond static T-V perception. An early representative line is the ObjectFolder series [56, 57, 58], which augments vision and tactile sensing with impact audio for multisensory object understanding. The earlier versions focus on large-scale simulated objects, while ObjectFolder-Real provides densely aligned real-world measurements. These datasets mainly strengthen object-centric perception by introducing complementary sensory channels for cross-modal learning and sim-to-real transfer. Later T-V-O datasets place greater emphasis on embodied interaction. TLA [59] combines sequential tactile observations with language-conditioned manipulation trajectories, supporting the study of contact-rich control and action-conditioned tactile perception. VinT-6D [63] further incorporates proprioception together with vision and touch, enabling research on dexterous manipulation and occlusion-robust object-in-hand perception. OmniViTac [64] extends this trend by providing a large-scale visuo-tactile-action dataset for contact-rich manipulation, with diverse tasks, objects, and temporally aligned multimodal streams. Other recent datasets expand the interaction setting from localized contact to richer manipulation processes. OPENTOUCH [61] focuses on full-hand tactile sensing
+Tactile Encoder
+Text Encoder
+Vision Encoder
+Tactile Encoder
+fusing
+rough texture, cool, hard, stone's texture, uneven surface
+Class
+Language
+Action
+Image
+Fig. 5: General paradigm of multimodal tactile fusion with downstream tasks.
+during natural object manipulation, FreeTacMan [60] supports scalable T-V data collection in diverse contact-rich scenarios, and Hoi! [62] integrates force-grounded articulated manipulation with cross-view visual observation. Overall, T-V-O datasets broaden multimodal tactile fusion from multisensory perception to embodied perception-action modeling by introducing dynamic and physically grounded signals beyond vision and touch.
+IV. MULTIMODAL METHODS
+Multimodal methods form the algorithmic core of multimodal tactile fusion, determining how heterogeneous sensory signals are encoded, aligned, fused, and used. As illustrated by the unified encoder-fusion-task pipeline in Fig. 5, modalityspecific inputs are mapped into learned representations and integrated to support downstream tasks. We categorize the existing literature into three primary paradigms: (1) Multimodal Perception and Recognition; (2) Multimodal Cross-Modal Generation and Transformation; and (3) Multimodal Interaction and Manipulation. Table II summarizes representative methods in these paradigms. In the following subsections, we review them with an emphasis on their fusion strategies and learning objectives.
+A. Multimodal Perception and Recognition
+Multimodal perception and recognition is the most widely studied paradigm in multimodal tactile fusion. Its primary goal is to infer semantic and functional properties by integrating tactile signals with complementary modalities, mainly vision and language. As shown in Fig. 6, these methods typically follow an encode-fuse-predict pipeline that maps heterogeneous observations to task-specific outputs. We categorize this paradigm into four core tasks: object recognition, attribute and material recognition, grasp success or failure prediction, and cross-modal retrieval and matching. Although these tasks often share similar fusion backbones, they differ substantially in supervision signals, evaluation protocols, and the specific role of tactile feedback. The following subsections review representative methods for those, with an emphasis on their architectural designs and fusion strategies.
+
+
+8
+TABLE II: Summary of multimodal tactile fusion methods published before the first quarter of 2026.
+Method Year Input Modality PR CG IM
+OR AM GS RM VTG TLG RP LM VT [40] 2016 - - - ✓ CLAF [42] 2017 CNN [65] CNN [65] - ✓ TFOS [41] 2017 ImageNet [65] ImageNet [65] - ✓ ACVTM [43] 2018 ResNet [20] ResNet [20] - ✓ ✓ ViTac [10] 2018 AlexNet [65] CNN [65] - ✓ SFA [66] 2019 Mask R-CNN [67] BNN [68] - ✓ LVTR [69] 2019 ResNet [20] GAN [70] - ✓ Making sense [71] 2019 FlowNet [72] CNN [65] - ✓ CTAV [45] 2019 ResNet [20] ResNet [20] - ✓ ✓ LLCL [73] 2020 VGG-16 [74] VGG-16 [74] - ✓ VTT [75] 2022 ViT [21] Transformer [15] - ✓ TouchAndGo [46] 2022 ResNet [20] ResNet [20] - ✓ ✓ ✓ Visuotactile-RL [76] 2022 DrQv2 [77] DrQv2 [77] - ✓ VITO-Transformer [78] 2023 Transformer [15] Transformer [15] - ✓ UVTS [48] 2024 MLP [79] MLP [79] - ✓ ✓ MViTac [1] 2024 ResNet [20] ResNet [20] - ✓ UniTouch [2] 2024 ViT [21] ViT [21] OpenCLIP [23] ✓ ✓ ✓ ✓ ✓ Tactile-vlm [3] 2024 ViT [21] ViT [21] OpenCLIP [23] ✓ ✓ STLV-Align [4] 2024 ViT [21] ViT [21] OpenCLIP [23] ✓ Octopi [50] 2024 CLIP-ViT [23] ViFi-CLIP [80] Vicuna1.5 [81] ✓ BVT [82] 2024 CLIP [23] CLIP [23] - ✓ Octopi1.5 [83] 2025 Qwen2-VL [84] CLIP-ViT [23] Qwen2-VL [84] ✓ ViTacFormer [85] 2025 Transformer [15] Transformer [15] - ✓ ViTaPEs [86] 2025 Transformer [15] Transformer [15] - ✓ ✓ STOLA [51] 2025 - TLV-Link [6] Vicuna 1.5 [81] ✓ ObjectAttrRecogn [87] 2025 ViT [21] ViT [21] - ✓ Surformer v1 [12] 2025 ResNet [20] ResNet [20] - ✓ Surformer v2 [88] 2025 EfficientNetV2 [89] Transformer [15] ✓ CLTP [5] 2025 ULIP-2 [90] CLIP [23] CLIP [23] ✓ ✓ ConViTac [91] 2025 ViT [21] ViT [21] ✓ ✓ RA-Touch [13] 2025 OpenCLIP [23] OpenCLIP [23] ✓ TLV-Link [6] 2025 ViT [21] ViT [21] OpenCLIP [23] ✓ ✓ TLA [59] 2025 - ViT [21] Qwen2 [84] ✓ VTLA [7] 2025 Qwen-VL [84] ViT [21] - ✓ OmniVTLA [55] 2025 - ViT [21] ViT [21] ✓ VTLG [92] 2025 ViT [21] ViT [21] Albert-base-v2 ✓ VTV-LLM [8] 2025 ViT [21] ViT [21] - ✓ TVT-Transformer [54] 2025 Transformer [15] Transformer [15] BERT [22] ✓ DT-Transformer [93] 2025 - CNN [65] BERT [22] ✓ VHTformer [39] 2025 CNN [65] CNN [65] BERT [22] ✓ Touch in the wild [49] 2025 ViT [21] CNN [65] ✓ DAMF [53] 2025 ViT [21] DenseNet [94] -BERT [22] ✓ AnyTouch [9] 2025 - - - ✓ ✓ ✓ TEVG [11] 2025 - - - ✓ DreamTacVLA [95] 2025 CLIP-ViT [23] CLIP-ViT [23] CLIP-ViT [23] ✓ VLA-Touch [96] 2025 GPT-4o [97] Octopi [50] GPT-4o [97] ✓ ✓ DexTac [98] 2026 ResNet [20] ResNet [20] - ✓ OmniVTA [64] 2026 ResNet [20] - - ✓ VTAM [99] 2026 - - - ✓ Input: audio, touch, action, language, vision. Action: PR: Multimodal Perception and Recognition; CG: Cross-Modal Generation and Transformation; IM: Multimodal Interaction and Manipulation; OR: Object Recognition; AM: Attribute and Material Recognition; GS: Grasp Success/Failure Prediction; RM: Cross-Modal Retrieval and Matching; VTG: Vision-Tactile Generation; TLG: Tactile-Language Generation; RP: Robot Manipulation with Multimodal Perception; LM: Language-Guided Manipulation.
+
+
+9
+Multimodal Object Recognition
+1
+Multimodal Attribute and Material Recognition
+2
+Grasp Success/Failure Prediction
+3
+Cross-Modal Retrieval and Matching
+4
+Model
+Input Output Rock
+Model
+Input Output cool, hard
+Model
+Input Output Event success?
+Model
+Input Output They match?
+Fig. 6: Categorization of multimodal perception and recognition, including multimodal object recognition (Section IV-A1), multimodal attribute and material recognition (Section IV-A2), grasp success or failure prediction (Section IV-A3), and crossmodal retrieval and matching (Section IV-A4).
+1) Multimodal Object Recognition: Multimodal object recognition identifies object categories by integrating complementary cues: vision for global appearance, tactile sensing for local physical properties, and language for high-level semantic priors. The main challenge is to align these heterogeneous modalities, which differ in spatial structure, noise characteristics, and semantic granularity, while preserving their complementary strengths.
+Early T-V Fusion Methods: Early research mainly focused on T-V fusion. A representative framework was introduced by Liu et al. [40], showing that augmenting visual features with tactile sequences improves robustness under visual ambiguity. To address weakly paired settings without strict sample-level correspondence, a joint group kernel sparse coding method with an l2,1-norm constraint was proposed by Liu and Sun [100] to enforce class-level sparsity consistency. These studies demonstrated the practical value of T-V integration.
+Deep Cross-Modal Architectures: Subsequent methods moved toward deep cross-modal architectures. VITOTransformer [78] introduced attention-based fusion to jointly model global vision features and local tactile features, and later methods further incorporated language inputs. For example, DT-Transformer [93] introduced text as an auxiliary semantic modality to reduce ambiguity in sparse tactile signals, while TVT-Transformer [54] extended this direction to a unified T-V-L architecture.
+Recent T-V-L Fusion and Spatial Alignment: Recent studies further emphasize flexible T-V-L fusion and finegrained spatial alignment. VHTformer [39] employs a jointquery mechanism to support symmetric vision-tactile-language interaction and mitigate modality bias. DAMF [53] uses
+language-guided attention to improve T-V fusion, especially when tactile data is limited. In addition, ViTaPEs [86] improves cross-modal alignment through position encodings that explicitly model the spatial relationship between vision observations and physical contacts. Overall, this line of research shows a clear transition from basic T-V pairing to tighter T-V-L integration, where language increasingly serves as an important semantic scaffold.
+2) Multimodal Attribute and Material Recognition: Multimodal attribute and material recognition infers fine-grained physical properties, such as texture, compliance, and contact geometry, by integrating tactile signals with vision and language cues. Unlike global object recognition, this task relies more heavily on local and contact-aware semantics, where vision alone is often insufficient and tactile feedback provides important complementary information.
+Early Shared T-V Representations: Early methods mainly focused on learning shared representations across modalities. Representative frameworks in ViTac [10] and a joint sparse coding approach were introduced to show that cross-modal fusion improves material identification in ambiguous or weakly paired settings, with the latter proposed by Liu and Sun [100]. This direction was later extended to continual learning for reducing catastrophic forgetting by LLCL [73] and to largerscale self-supervised cross-modal association with humancollected datasets by Touch and Go [46].
+Transferable Learning and Semantic Grounding: More recent studies have moved toward scalable representations supported by foundation models. Methods such as UniTouch [2] and MViTac [1] use contrastive learning to align tactile features with pretrained vision models, enabling zero-shot material inference without explicit task-specific supervision. At the same time, language has become an important semantic bridge. Frameworks such as Octopi [50], Tactile-VLM [3], STLV-Align [4], and CLTP [5] ground tactile observations in language descriptions, enabling open-vocabulary attribute reasoning. Further improving this alignment, Transformer-based architectures, including Surformer [12, 88], ConViTac [91], and ViTaPEs [86], explicitly model the spatial and semantic consistency between global vision observations and localized physical contacts.
+Sensor-Agnostic and Scalable Architectures: More recently, this line of research has increasingly addressed data scarcity and hardware heterogeneity. Representative advances include retrieval-augmented learning that transfers vision material priors to tactile perception (RA-Touch [13]), multitask joint prediction [87], and unified static-dynamic representations that generalize across heterogeneous tactile sensors (AnyTouch [9]). Large-scale frameworks such as TLV-Link [6] further reflect this trend. Overall, this area has progressed from task-specific T-V feature sharing to more unified and sensoragnostic frameworks with stronger language grounding and cross-modal alignment.
+3) Grasp Success/Failure Prediction: Grasp success or failure prediction evaluates grasp stability after contact and during lifting, relying mainly on real-time sensory feedback rather than pre-grasp planning. Because this task depends strongly on contact-rich cues, such as local geometry, pressure distribution,
+
+
+10
+and incipient slip, multimodal approaches integrate vision and tactile signals to overcome the severe occlusion and limited observability of single-modality perception.
+Foundational T-V Assessment: Early studies established the importance of tactile feedback in post-contact grasp evaluation. Representative frameworks such as TFOS [41] showed that integrating tactile sequences significantly outperforms vision-only prediction, especially when visual evidence becomes unreliable after contact. Building on this direction, ACVTM [43] highlighted the value of T-V fusion not only for success prediction but also for closed-loop regrasping, emphasizing the need for contact-aware manipulation.
+Transferable Representations and Scalability: More recent research has moved from task-specific predictors toward more general and transferable multimodal representations. Models trained on large-scale cross-modal associations, such as Touch and Go [46], can transfer effectively to grasp assessment. In addition, foundation-model-based architectures such as MViTac [1] and UniTouch [2] show that aligned crossmodal representations can support grasp prediction with limited supervision or even zero-shot generalization.
+Robustness and Fine-Grained Alignment: Recent frameworks further improve spatial alignment and robustness across heterogeneous tactile sensors. ConViTac [91] enhances visiontactile consistency through contrastive alignment for finegrained interaction reasoning. At the same time, models such as TLV-Link [6], AnyTouch [9], and ViTaPEs [86] improve scalability across different data scales, sensor morphologies, and evaluation settings. Overall, this line of work has developed grasp success prediction into an important downstream task for evaluating robust multimodal tactile perception.
+4) Cross-Modal Retrieval and Matching: Cross-modal retrieval and matching aligns tactile signals with vision or language through shared representations, enabling the retrieval of semantically related counterparts across modalities. In multimodal tactile fusion, this task mainly serves as a benchmark for evaluating whether learned representations preserve contactaware semantics while supporting robust cross-modal transfer. Retrieval-Oriented Representation Alignment: Early frameworks such as CLAF [42] learned shared T-V representations to support bidirectional retrieval for material understanding. More recent approaches increasingly treat retrieval not only as a standalone task but also as an evaluation protocol for general-purpose multimodal representations. For example, UniTouch [2] shows that aligned tactile features can support zero-shot tactile-to-image and tactile-to-text retrieval, linking physical contact with broader vision and language semantics.
+Benchmarking Cross-Modal Transferability: Although dedicated retrieval-only architectures remain relatively limited, this paradigm plays an important role in measuring the alignment quality, semantic richness, and transferability of modern multimodal tactile models.
+B. Cross-Modal Generation and Transformation
+Cross-modal generation and transformation extends multimodal tactile fusion from recognition to cross-sensory synthesis. As shown in Fig. 7, these methods mainly follow a
+Vision-Tactile Generation and Translation
+1
+Language-Tactile Generation and Translation
+2
+Model
+Input Output
+Input
+Output
+Model
+Input Output
+Input
+Output
+this rock feels rough and uneven, yet very hard."
+Fig. 7: Categorization of multimodal cross-modal generation and transformation, including vision-tactile generation and translation (Section IV-B1) and language-tactile generation and translation (Section IV-B2).
+conditional generation paradigm, learning mappings between modalities to synthesize target signals. Unlike perception tasks, they place greater emphasis on semantic alignment, structural consistency, and faithful reconstruction. We divide this area into two directions: (1) Visual-Tactile Generation and Translation: This line studies direct visualtactile correspondence, generating local tactile responses from visual inputs, or visual signals from tactile observations. (2) Language-Tactile Generation and Translation: This line introduces language, enabling tactile signals to be described in natural language or generated from semantic prompts. Although both directions often rely on encoder-decoder architectures and cross-modal alignment objectives, they differ in output space and semantic granularity. The following subsections review the main methods in these two directions.
+1) Vision-Tactile Generation and Translation: Visiontactile generation and translation studies bidirectional synthesis between vision observations and tactile responses by modeling their underlying cross-modal correspondences. Unlike discriminative tasks, this generative setting focuses more on cross-modal reconstruction and the preservation of shared physical structures, such as texture, contact geometry, and material properties.
+Foundational Supervised Synthesis: Early studies mainly explored supervised and often unidirectional generation. For example, LVTR [69] demonstrated the feasibility of structured vision-to-tactile translation by converting texture images into tactile vibrations through an ensemble GAN. Moving beyond one-way mapping, CTAV [45] introduced bidirectional prediction by embedding both vision and tactile signals into shared representations, enabling reciprocal cross-modal inference.
+Scalable and Unified Representations: Later methods moved toward more scalable and representation-driven architectures. Models trained on large-scale cross-modal associations, such as Touch and Go [46], naturally support bidirectional generation together with recognition. This direction is further developed by BVT [82], which constructs explicit bidirectional mappings, and UVTS [48], which preserves critical spatial and contact-aware semantics during translation. More recently, UniTouch [2] further extends this trend by aligning tactile features with pretrained multimodal foundation models, enabling more general vision-tactile generation without heavy
+
+
+11
+reliance on paired task-specific supervision. Overall, this area has progressed from isolated supervised translation pipelines to more unified representation frameworks. Recent approaches increasingly treat high-quality vision-tactile generation not only as a standalone task, but also as a natural outcome of robust and scalable multimodal alignment.
+2) Language-Tactile Generation and Translation:
+a) Tactile-to-Language Description Generation: Tactileto-language generation translates tactile signals into natural language descriptions, such as texture, compliance, and local geometry, helping bridge the gap between raw physical contact and semantic reasoning. Unlike visual captioning, this task focuses on contact-centered semantics, making tactile perception more interpretable for human-robot communication and high-level decision-making.
+Foundational Cross-Modal Alignment: Early frameworks approached tactile description generation mainly through joint representation learning. For example, Tactile-VLM [3] maps sensory inputs into a unified vision-language space, while UniTouch [2] leverages pretrained vision-language models to support zero-shot description generation without task-specific supervision. These studies show that robust cross-modal alignment is a key prerequisite for tactile-to-language generation. Grounded and Interactive Generation: More recent methods move toward more explicitly grounded and open-ended language generation. CLTP [5] decodes fine-grained contact states, such as shape and depth, directly from tactile arrays, whereas VTV-LLM [8] extends this capability to temporal vision-tactile streams for dynamic interactions. To improve semantic richness, recent architectures increasingly incorporate retrieval-augmented mechanisms. RA-Touch [13] uses external vision-language knowledge to refine descriptions, and Octopi1.5 [83] adopts lightweight retrieval for real-time and contextaware responses in interactive settings. In addition, SToLa [51] moves beyond rigid template-based captions toward free-form descriptions and tactile commonsense reasoning. Overall, this line of work shows a clear transition from basic representation alignment to more interactive and retrievalaugmented generation, where language increasingly serves as a general interface for multimodal tactile understanding.
+b) Text-Driven Tactile Synthesis: Text-driven tactile synthesis maps language directly to physically grounded tactile signals, allowing systems to infer contact sensations from semantic prompts. The main challenge is to connect abstract language concepts, such as texture, compliance, and contact state, to localized physical representations without relying on vision observations.
+Emerging Text-to-Tactile Generation: Dedicated research in this direction is still limited. However, representative frameworks such as UniTouch [2] show its feasibility by anchoring tactile features in pretrained vision-language representation spaces. Based on these aligned embeddings, textual prompts can guide existing generative models to achieve zero-shot textto-tactile synthesis without paired task-specific supervision. These early results suggest that tactile synthesis can emerge naturally from large-scale multimodal alignment, with lan
+Robot Manipulation with Multimodal Perception
+1
+Multimodal Manipulation under Language Instructions
+2
+Model
+Input Output
+Grab it and put it there
+Follow the instructions.
+Model
+Input Output
+Scraping
+Fig. 8: Categorization of multimodal interaction and manipulation, including robot manipulation with multimodal perception (Section IV-C1) and multimodal manipulation under language instructions (Section IV-C2).
+guage serving as a flexible high-level interface for imagining diverse contact scenarios.
+C. Multimodal Interaction and Manipulation
+Multimodal interaction and manipulation is the most application-oriented branch of multimodal tactile fusion, where perception is tightly coupled with physical action. As shown in Fig. 8, these methods extend multimodal fusion from representation learning to closed-loop control, using fused sensory features to guide robot actions in contact-rich and dynamic environments. Compared with recognition or generation tasks, they must also account for action feasibility, contact dynamics, and real-time feedback. Existing studies can be grouped into two settings: robot manipulation with multimodal perception and multimodal manipulation under language instructions. The former mainly combines tactile and vision signals to improve robustness and precision in tasks such as grasping, insertion, and surface interaction. The latter further introduces language for high-level task guidance, while tactile feedback grounds instruction execution during contact. In the following, we review representative methods in these two settings and discuss how multimodal fusion improves control performance and generalization. 1) Robot Manipulation with Multimodal Perception: a) Stable Grasping Control with Tactile Feedback: Stable grasping control uses continuous contact feedback to maintain grasp stability during execution. Unlike pre-grasp planning based mainly on vision cues, it focuses on post-contact adjustments driven by tactile signals, such as force distribution and incipient slip, which are particularly important when handling transparent, reflective, or deformable objects under visual ambiguity.
+Early Closed-Loop T-V Control: Early frameworks such as ACVTM [43] demonstrated the value of closed-loop TV refinement, enabling iterative pose and force adjustment to recover from unstable grasps without applying excessive force. Building on this direction, Visuotactile-RL [76] formulated stable grasping as a reinforcement learning problem and showed improved robustness and object generalization. Similarly, TEVG [11] highlights tactile feedback as an important complement when vision becomes unreliable in transparent object manipulation.
+
+
+12
+Recent Multimodal Policy Learning: More recent work extends this setting toward unified multimodal policy learning. OmniVTLA [55] integrates semantically aligned tactile tokens into an action generation backbone, supporting contact-aware policy learning for complex pick-and-place tasks. Overall, this line of research shows a transition from reactive grasp stabilization to more unified multimodal policy learning for robust manipulation.
+b) Fine Manipulation and Assembly Tasks: Fine manipulation and assembly tasks require precise perception of continuous contact states, surface interactions, and dynamic forces. In these contact-rich settings, T-V fusion is especially important because visual occlusion and contact uncertainty often make unimodal control unreliable.
+Early Multimodal Representation Learning: Early approaches mainly focused on multimodal representation learning. Self-supervised vision-force fusion was used by Lee et al. [71] to improve sample efficiency in peg-insertion tasks. In addition, a hierarchical vision-tactile framework was introduced by SFA [66] to infer latent interaction modes, enabling fine-grained control in assembly tasks such as Jenga.
+Attention-Based Cross-Modal Fusion: Later methods increasingly adopted explicit cross-modal attention mechanisms. VTT [75] showed that tactile feedback can guide vision attention toward task-relevant regions during pushing and picking. ViTacFormer [85] further extends this Transformer-based design to dexterous manipulation, demonstrating the effectiveness of attention-based modeling in more complex assembly scenarios.
+Contact-Aware Policies and Broader Integration: Recent research places greater emphasis on contact-aware policies and broader multimodal integration. DexTac [98] uses explicit contact-region and force cues for high-precision tasks such as syringe injection, while DreamTacVLA [95] predicts future tactile states to stabilize sustained interactions. OmniVTA [64] further introduces a visuo-tactile world model that jointly captures interaction dynamics for contact-rich robotic manipulation. VTAM [99] integrates tactile sensing into a predictive video world model to support force-aware control in complex contact-rich manipulation. Extending toward vision-language-action settings, VLA-Touch [96] and TLA [59] integrate tactile signals with semantic representations for contact-sensitive reasoning. In addition, unified vision-tactile frameworks across heterogeneous sensors (AnyTouch [9]) and portable systems [49] show promising transferability for fine manipulation in unstructured environments.
+Overall, this area has progressed from basic representation learning to more integrated vision-language-action frameworks, showing that dexterous manipulation depends strongly on modeling dynamic contact structures together with higherlevel semantic context.
+2) Multimodal Manipulation under Language Instructions: Multimodal manipulation under language instructions maps high-level semantic commands to contact-rich physical control. Unlike methods driven only by vision or policy learning, this setting requires joint reasoning over task semantics, object geometry, and dynamic physical interactions, making T-V-L
+models an important bridge between abstract instructions and low-level execution. Recent work increasingly moves toward integrated TactileVision-Language-Action frameworks. VTLA [7] incorporates tactile feedback into language-conditioned manipulation to adapt insertion behavior under ambiguous vision, while VTLG [92] combines language instructions with vision and tactile perception for task-oriented grasp generation. Overall, these studies suggest that effective language-guided manipulation depends on the joint modeling of language instructions, multimodal perception, and continuous physical interaction.
+V. TACTILE SENSORS FOR MULTIMODAL FUSION
+Unlike distal vision, tactile perception is inherently shaped by the physical interface between the embodied agent and its environment. Therefore, a sensor’s transduction principle, material composition, and mechanical morphology directly determine the observability and semantic richness of contact events. In multimodal tactile fusion, tactile sensors provide the hardware foundation for data acquisition, cross-modal alignment, and downstream learning. We group existing tactile sensing platforms for multimodal fusion into four categories: wearable tactile systems, handheld and fingertip sensors, robotic skin and multimodal sensor patches, and gripper-mounted and integrated sensors. These categories span major hardware design choices, from humancentered and localized contact sensing to large-area distributed sensing and end-effector integration, offering a hardwareoriented view of the capabilities and limitations of multimodal tactile fusion systems.
+A. Wearable Tactile Systems
+Wearable tactile systems provide an important interface for capturing human interaction priors in multimodal learning. An early representative example is the glove-based platform introduced by Fang et al. [101], which combines distributed pressure signals with external vision features and shows that spatiotemporal vision-tactile integration improves object recognition over single-modality baselines. More recent systems place greater emphasis on scalable data collection and transferable skill learning. For example, the OSMO glove [102] uses distributed 3-axis magnetic sensors to capture full-hand contact and motion dynamics, supporting stronger policy learning than vision-only approaches. Complementing this full-hand design, FreeTacMan [60] integrates compact vision-tactile sensors on the thumb and index finger together with accurate pose tracking. This targeted configuration supports efficient large-scale data collection and improves contact-aware policy learning for high-precision tasks such as deformable object manipulation.
+B. Handheld and Fingertip Sensors
+Handheld and fingertip sensors provide localized and highresolution contact perception, making them well suited for direct integration with robotic end-effectors. Unlike large-area tactile skins, these systems emphasize compact form factors
+
+
+13
+and tight cross-modal coupling. A prominent direction is the structural design of vision-tactile fingertips to improve spatial alignment and facilitate downstream fusion. For example, LightTact [103] adopts an optical design that reduces reliance on deformation reconstruction, whereas TacThru [104] uses a transparent structure to simultaneously capture external vision context and internal tactile deformation, which is useful for manipulating soft, transparent, or occluded objects. At the same time, these compact interfaces are evolving from purely geometric imagers into richer hardware-level multimodal sensing units. Thermochromic materials were incorporated into a vision-based tactile sensor by Sun et al. [105], enabling joint perception of force, texture, and thermal cues. Similarly, magnetic sensing was integrated within an elastomer by MagicGel [106] to improve force estimation and enable proximity perception, showing that auxiliary physical channels can extend the capabilities of conventional optical designs. In practical applications, these high-fidelity sensors support both task-specific perception and contact-aware control. Vision-tactile feature fusion was used by Zhang et al. [107] to improve discrimination of fine embossed structures in braille recognition. For adaptive manipulation, a compact fingertip design is used by FVTS [108] to support real-time contact estimation and closed-loop grasp control. At the system level, tactile sensing is combined with force measurement, pose tracking, and onboard vision by platforms such as TacUMI [109], UMI-FT [110], and Touch in the Wild [49]. Overall, this trend supports more efficient multimodal data collection and more robust policy learning, making fingertip sensors a practical foundation for contact-rich embodied manipulation.
+C. Robotic Skin and Multimodal Sensor Patches
+Unlike localized fingertip sensors, robotic skins and multimodal sensor patches emphasize scalability, mechanical compliance, and distributed multiphysics sensing, such as pressure or slip, to support whole-body contact awareness. Early designs integrate multiple sensing mechanisms within compliant structures. For example, a thin-film array was proposed by Mao et al. [111] to capture force, temperature, and slip for dexterous grasp control. A hydrogel e-skin was developed by Lv et al. [112] to combine triboelectric and ionic capacitive sensing for dynamic and static material recognition. To address the wiring bottleneck in large-area deployments, piezoresistive sponges were combined with electrical resistance tomography (ERT) by Zheng et al. [113, 114]. This architecture supports scalable contact localization, force estimation, and touch-type discrimination over large collaborative robot surfaces without dense wiring. More recent studies increasingly explore adaptive and neuromorphic sensor designs. Self-powered dual-function sensors with in-sensor computation and tactile-pain reflexes were introduced by Wu et al. [115] and Li et al. [116], supporting autonomous self-protective grasping. Extending this direction, optical, triboelectric, and inertial sensing mechanisms are integrated by SuperTac [117] to enrich contact interpretation through multimodal fusion. Overall, these developments extend tactile fusion from localized point contact to more dis
+tributed body-level perception, which is important for safe and adaptive human-robot interaction.
+D. Gripper-Mounted and Integrated Sensors
+Gripper-mounted systems integrate multimodal perception directly at the manipulation interface, providing compact and co-located feedback for closed-loop control. To maintain consistent observations across demonstration and execution, tactile modules are integrated by modular platforms such as TacUMI [109] and Touch in the Wild [49] for real-world contact-rich tasks. Another practical direction is to retrofit standard grippers with tactile sensors. Plug-and-play fingertip replacements are provided by LightTact [103] and TacThru [104], offering high-resolution and transparent visiontactile imaging, respectively. To extend sensing channels with limited hardware modification, flexible films were applied to parallel-jaw grippers by Mao et al. [111] for slip and thermal perception, while RGB cameras and pressure sensors were embedded into two-finger grippers by Ye et al. [118] to support multitask policy learning. Overall, end-effector-level integration improves contact interpretation, control precision, and the efficiency of multimodal learning.
+VI. EVALUATION AND COMPARATIVE ANALYSIS
+Unlike more established multimodal areas such as visionlanguage learning, multimodal tactile fusion still lacks unified benchmarks and standardized evaluation protocols. Existing evaluation practices remain highly task-dependent, spanning perception, recognition, cross-modal generation, and physical manipulation. This diversity reflects the heterogeneous nature of tactile sensing, variations in sensor hardware, and the close coupling between tactile signals and physical interaction contexts. As a result, most of the studies adopt evaluation protocols tailored to specific tasks and application settings rather than following a common benchmarking pipeline. Understanding these evaluation settings is therefore important for interpreting reported results and enabling more meaningful comparisons across different research directions.
+A. Evaluation Metrics
+Evaluation metrics quantify model performance under a given benchmark setting. Unlike benchmarks, which define datasets and experimental protocols, metrics specify how prediction accuracy, generation quality, or control effectiveness is measured. Because multimodal tactile fusion covers diverse tasks and sensing modalities, no single metric is suitable for all scenarios. Instead, different task categories rely on different metrics according to their objectives. Table III summarizes representative metrics used in this field.
+1) Metrics for Multimodal Perception and Recognition: Multimodal perception and recognition is a major evaluation category in multimodal tactile fusion, including object recognition, attribute and material recognition, grasp success/failure prediction, and cross-modal retrieval and matching. Although these tasks differ in supervision and objectives, their evaluation metrics can generally be grouped into classification-based, similarity-based, and ranking-based measures.
+
+
+14
+TABLE III: Summary of evaluation metrics used in multimodal tactile fusion.
+Abbr. ↑ / ↓ Full Name Formula Description References
+Metrics for Multimodal Perception and Recognition
+ACC ↑ Accuracy TP+TN
+TP+TN+FP+FN Overall proportion of correct predictions.
+[10, 78, 93, 73, 41, 53, 87, 9]
+PREC ↑ Precision TP
+TP+FP Correct positives among predicted positives.
+[78, 87]
+REC ↑ Recall TP
+TP+FN Correct positives among ground-truth positives.
+[78, 87]
+F1 ↑ F1-score 2·PREC·REC
+PREC+REC Harmonic mean of precision and recall.
+[78, 54, 53, 93, 87]
+mAP ↑ Mean Average Precision 1
+Q
+PQ
+q=1 APq Mean AP over queries or classes.
+[92, 2, 6, 13, 4]
+R@k ↑ Recall at k 1
+Q
+PQ
+q=1 I(hit in top-k) Fraction of queries with a correct match in top-k.
+[5, 1, 2, 6, 13, 4]
+MRR ↑ Mean Reciprocal Rank 1
+Q
+PQ q=1
+1
+rankq Average inverse rank of the first relevant result.
+[13]
+COS ↑ Cosine Similarity z1·z2
+∥z1∥∥z2∥ Similarity between two embedding vectors.
+[3, 2, 5, 91, 1]
+Metrics for Cross-Modal Generation
+MSE ↓ Mean Squared Error 1
+N
+PN
+i=1 ∥xˆi − xi∥22 Average squared reconstruction error.
+[82, 45]
+PSNR ↑ Peak Signal-to-Noise Ratio 10 log10
+L2
+MSE Reconstruction fidelity from MSE.
+[82]
+SSIM ↑ Structural Similarity Index (2μxμxˆ+C1)(2σxxˆ+C2)
+(μ2x +μ2
+xˆ +C1 )(σ2x +σ2
+xˆ+C2) Structural perceptual similarity. [82]
+FID ↓ Frechet Inception Distance
+∥μr − μg∥2
+2 + Tr(Σr + Σg
+−2(ΣrΣg)1/2 Distribution gap between real
+and generated samples.
+[82]
+CA ↑ Classification Accuracy Ncorrect
+Nall Accuracy of a pretrained classifier on generated samples.
+[82, 46, 3, 8]
+CVTP ↑ Contrastive visual-Tactile Pretraining Score
+- Embedding alignment between generated outputs and conditions.
+[2, 5]
+LLM ↑ LLM-based Semantic Score - LLM-judged semantic quality of generated text.
+[51, 13, 83]
+MC ↑ Material Consistency - Agreement of material predictions across generated and conditioning data.
+[82]
+METEOR ↑ METEOR Score - Text similarity with synonym and stem matching.
+[51]
+Metrics for Multimodal Manipulation and Control
+SR ↑ Success Rate Nsuccess
+Ntrials Ratio of successful executions. [43, 76, 66, 119, 59,
+7, 85, 111, 49, 9, 75]
+IoU ↑ Intersection over Union |Gp∩Gg|
+|Gp∪Gg| Overlap between predicted and ground-truth grasp regions.
+[11]
+AE ↓ Angle Error |Ap − Ag| Angular error of predicted grasp orientation.
+[11]
+GCR ↑ Goal Convergence Rate
+1 m
+m
+X
+i=1
+I |xˆi − xi| < εx, |yˆi − yi| < εy,
+|rˆz,i − rz,i| < εr
+Fraction of actions within target tolerances.
+[59, 7, 76]
+L1 ↓ L1 Distance 1
+m
+Pm
+i=1 ∥ai − aˆi∥1 Mean absolute action error. [7, 59]
+HNS ↑ Human Normalized Score
+PN
+i=1 wisi 3
+PN
+i=1 wi Stage-weighted normalized ma
+nipulation score.
+[85]
+AP ↑ Average Precision - Precision-recall area for ranked predictions.
+[92]
+mAP ↑ Mean Average Precision 1
+C
+PC
+c=1 APc Mean AP across tasks, objects, or instances.
+[92]
+
+
+15
+a) Multimodal Object Recognition.: Multimodal object recognition is usually formulated as a supervised multi-class classification task, in which tactile and vision features are jointly used to predict object categories. Common metrics include precision [78, 87], recall [78, 87], accuracy [10, 78, 93, 73, 41, 53, 87, 9], and F1-score [78, 54, 53, 93, 87]. These metrics directly evaluate classification performance, while F1score is particularly informative under class imbalance.
+b) Multimodal Attribute and Material Recognition.: Attribute and material recognition aims to infer physical properties such as material type or hardness. Depending on the task formulation, these problems may be cast as multi-class or binary classification. Accordingly, accuracy and F1-score are commonly reported, and macro-averaged variants are often preferred under imbalanced class distributions. Recent studies increasingly evaluate attribute and material recognition in zero-shot settings, where no task-specific labels are available during training. In this case, predictions are obtained by comparing tactile embeddings with text embeddings of candidate attribute descriptions, typically using cosine similarity [3, 2, 5, 91, 1]. The predicted class is then selected according to the highest similarity score. This setting emphasizes semantic alignment and cross-task generalization rather than standard supervised classification.
+c) Grasp Success/Failure Prediction.: Grasp success/failure prediction determines whether a robotic grasp will succeed based on tactile observations before or during contact. It is typically formulated as a binary classification task and evaluated using accuracy, precision, recall, and F1-score. Because successful and failed grasps are often imbalanced, F1score and recall for failure cases are frequently emphasized in safety-critical settings.
+d) Cross-Modal Retrieval and Matching.: Cross-modal retrieval and matching evaluate whether tactile signals can be aligned with corresponding vision or language representations. These tasks are usually assessed with ranking-based metrics, particularly R@k, mAP, and MRR [5, 1, 2, 6, 13, 4]. Unlike classification metrics, these measures focus on cross-modal alignment quality and are therefore well suited for evaluating transferable tactile representations, including zero-shot and cross-sensory retrieval.
+2) Metrics for Multimodal Cross-Modal Generation and Transformation: Multimodal cross-modal generation and transformation synthesize one modality from another, such as generating tactile signals from vision or language inputs, or producing vision or language outputs from tactile observations. Evaluating these tasks is challenging because generation quality depends not only on low-level reconstruction fidelity, but also on perceptual realism, semantic consistency, and task relevance. Existing metrics can therefore be grouped into signal-level similarity, perceptual and distribution-based quality, semantic consistency, and LLM-based evaluation.
+a) Vision-Tactile Generation and Translation.: For vision-tactile generation and tactile-guided image synthesis, evaluation usually begins with signal-level reconstruction metrics, including MSE and PSNR [82, 45]. Because these metrics mainly reflect reconstruction fidelity and may not correlate well with perceptual quality, prior work also
+reports SSIM and FID [82] to assess structural similarity and distribution-level realism. Beyond generic generation quality, some studies further adopt task-driven metrics such as classifier-based accuracy [82, 46, 3, 8] to examine whether generated samples preserve object- or material-level semantics. More recent work also uses embedding-based consistency scores derived from contrastive vision-tactile representations [2, 5] to measure whether generated tactile outputs remain aligned with their conditioning inputs in a shared embedding space.
+b) Language-Tactile Generation and Translation.: For language-tactile generation, evaluation places greater emphasis on semantic consistency than on direct signal reconstruction. In tactile-to-language generation, recent work increasingly uses LLMs as automatic judges [51, 13, 83], assigning similarity or quality scores to evaluate semantic correctness and instruction adherence. This strategy provides a scalable proxy for human judgment. For text-to-tactile generation, direct sample-wise comparison is often less informative, so semantic consistency is typically evaluated indirectly through downstream tasks such as material classification consistency [82]. In this setting, generated tactile samples are fed into a pretrained classifier, and evaluation examines whether the predicted labels match the semantics implied by the conditioning text or paired vision input. This protocol reflects whether the generated tactile outputs preserve discriminative physical properties relevant to downstream perception.
+3) Metrics for Multimodal Interaction and Manipulation: Multimodal interaction and manipulation evaluate whether tactile feedback improves contact-rich decision-making and action execution. Compared with perception tasks, their metrics are more closely tied to physical outcomes and therefore vary substantially across task settings. Existing metrics can be grouped into grasp detection, goal-oriented control, fine manipulation, dexterous manipulation, and ranking-based evaluation for language-conditioned manipulation.
+a) Stable Grasping and Grasp Detection: For stable grasping and grasp pose estimation, evaluation is often adapted from planar grasp detection. A predicted grasp is typically regarded as correct when both its orientation and spatial overlap with the ground truth satisfy predefined thresholds, which are commonly measured by angle error and IoU [11]. These metrics directly assess geometric grasp quality and are widely used in tactile-assisted grasp detection.
+b) Goal-Oriented Tactile Control and Reachin: For tactile-guided reaching and contact alignment, evaluation mainly focuses on whether the target contact is successfully achieved. The most common metric is binary success rate [43], which directly reflects whether multimodal feedback enables accurate contact localization under partial observability.
+c) Fine Manipulation and Assembly Tasks: For fine manipulation and assembly, which require continuous control over multiple dimensions, evaluation often measures both convergence and action accuracy. Common metrics include Goal Convergence Rate (GCR) [59, 7, 76] and L1 distance [7, 59]. Compared with binary success rate, these metrics provide more fine-grained information about control precision and whether predicted actions remain within task-specific tolerances.
+
+
+16
+d) Dexterous Manipulation Metrics: For dexterous manipulation, simple success rates often fail to reflect intermediate progress and the specific contribution of tactile feedback. Stage-aware metrics such as Human Normalized Score (HNS) [85] therefore provide a more detailed evaluation by accounting for both task progression and tactile dependence. e) Language-Conditioned Multimodal Manipulation: For language-conditioned manipulation, evaluation often uses ranking-based metrics similar to those used in retrieval and detection. Given multiple predicted grasps or actions, Precision@k, AP, and mAP [92] are commonly reported to evaluate whether language-guided policies produce correct and task-relevant actions across diverse instructions.
+4) Limitations of Existing Metrics: Despite their diversity, existing metrics remain fragmented and highly task-specific. Classification and retrieval metrics reflect recognition and alignment quality, but they do not capture physical feasibility. Generation metrics measure reconstruction fidelity or semantic consistency, yet often correlate weakly with tactile realism and downstream utility. Manipulation metrics better reflect task execution, but they are usually tied to specific embodiments, sensors, and action spaces, which limits comparability across studies. As a result, no single metric currently captures tactile realism, perceptual plausibility, semantic correctness, and control effectiveness in a unified manner.
+B. Benchmarks
+Unlike more established areas such as vision or visionlanguage learning, multimodal tactile fusion still lacks unified benchmarks. Existing evaluation settings are instead largely task-driven and dataset-specific, where recurring combinations of datasets, task formulations, and experimental protocols serve as de facto benchmarks.
+1) Benchmarks for Multimodal Perception and Recognition: Benchmarks for multimodal perception and recognition mainly evaluate whether tactile signals improve recognition, attribute inference, grasp outcome prediction, and cross-modal retrieval when combined with modalities such as vision or proprioception. Typical settings are built on representative vision-tactile datasets such as VisGel [45], ViTac [10], UniTouch [2], and Touch and Go [46], usually under fixed train-test splits, closedset protocols, or shared-embedding retrieval settings.
+2) Benchmarks for Multimodal Cross-Modal Generation and Transformation: Benchmarks for multimodal cross-modal generation and transformation evaluate whether a model can translate or synthesize one modality from another, such as generating tactile signals from images or producing language descriptions from tactile input. Common settings are built on paired multimodal datasets such as VisGel [45], UniTouch [2], TLV-Link [6], and Touch in the Wild [49], with evaluation typically combining reconstruction, semantic consistency, retrieval, and model- or human-based protocols.
+3) Benchmarks for Multimodal Interaction and Manipulation: Benchmarks for multimodal interaction and manipulation evaluate how tactile information supports decisionmaking and closed-loop action execution in embodied systems. They are commonly built on robotic manipulation datasets or
+platforms such as More than a Feeling [43], AnyTouch [9], VTLA [7], and VTLG [92], with representative tasks including grasping, contact-rich manipulation, and language-guided control, typically measured by task-level success or action quality.
+C. Cross-Task and Cross-Dataset Comparison
+A central question in multimodal tactile fusion is whether learned representations can generalize across tasks and datasets. Because existing models are evaluated under different task definitions, sensing setups, and data distributions, such cross-task and cross-dataset comparison is important for understanding robustness and transferability.
+1) Generalization across Tasks: Early multimodal tactile methods were usually designed for individual tasks, such as object recognition or grasp prediction, and their learned representations often transferred poorly beyond the original setting. More recent work instead aims to learn more general multimodal representations. For example, Touch and Go [46] and UniTouch [2] show that aligning tactile signals with vision or language can improve transfer across tasks with limited additional supervision. This trend suggests that cross-task generalization increasingly depends on representation quality rather than task-specific design.
+2) Generalization across Datasets: Cross-dataset generalization remains more challenging because tactile observations are strongly influenced by sensor hardware, contact conditions, and data collection protocols. As a result, models often exhibit substantial sensor bias and dataset bias. Recent studies suggest that alignment-based methods and unified multi-sensor learning can improve transfer, but performance still degrades noticeably when sensing setups differ substantially. Current evaluations therefore remain largely in-distribution.
+3) Effects of Data Scale, Modality Coverage, and Pretraining: Generalization is also strongly influenced by data scale, modality coverage, and pretraining. Because tactile data are expensive to collect, small datasets often lead to overfitting and limited transfer. Larger multimodal datasets and richer modality combinations, especially those involving language, generally improve representation quality. Pretraining is particularly helpful because it allows tactile models to benefit from strong priors in vision and language encoders, improving both benchmark performance and cross-task transfer.
+VII. DISCUSSION
+Although multimodal tactile fusion has made substantial progress, several important bottlenecks still limit its development from task-specific systems to more general embodied intelligence. Based on the methodological and hardware limitations discussed in Sections III–V, we summarize several current challenges that reflect both practical difficulties and broader research opportunities.
+A. Current Challenges
+(1) Data Scalability Gaps. Existing datasets (Section III) are often task-specific, sensor-dependent, and much smaller than large-scale vision-language resources. This gap creates
+
+
+17
+a mismatch with data-intensive foundation models, limiting the physical grounding of language semantics and reducing zero-shot transfer ability in embodied systems. (2) Modality Misalignment and Noise. Multimodal fusion methods still struggle with spatiotemporal misalignment between sparse tactile inputs and dense vision or language inputs. In unstructured settings, sensor drift, visual occlusion, and missing observations can further weaken cross-modal alignment, reducing the reliability of generation and increasing the risk of manipulation failure. (3) Hardware-Software Integration. The morphological diversity of tactile sensors, such as rigid and flexible designs, together with the lack of standardized interfaces, makes unified system integration difficult. In addition, limited durability and high power consumption restrict real-time closed-loop fusion with large vision-language models, creating a system-level bottleneck for whole-body embodied sensing. (4) Benchmark Deficiencies. Evaluation metrics (Section VI) remain highly task-specific and are often separated across recognition, generation, and manipulation settings. The lack of holistic end-to-end embodied benchmarks limits crossstudy comparison and makes it difficult to assess practical factors such as safety and robustness during physical interaction.
+B. Future Directions
+(1) Scalable Multimodal Datasets. To break the data bottleneck of foundation models, future collection must prioritize temporally aligned, action-conditioned visuo-tactile trajectories over static pairs. Furthermore, leveraging physicsinformed generative models (e.g., diffusion-based tactile hallucination) for large-scale data augmentation will be pivotal in overcoming physical scarcity and bridging the sim-to-real gap for zero-shot transfer. (2) Hierarchical Fusion Architectures. Future models should move beyond flat fusion toward hierarchical architectures that use tactile feedback as a grounded layer for multimodal reasoning. Self-supervised pretraining on physical interaction data will enhance robustness to noise and missing observations. (3) Bio-Inspired Sensors and Aquatic Environments. On the hardware side, tactile systems are expected to develop toward compliant, durable, and large-area e-skins with improved on-sensor processing. Future work should also extend multimodal tactile sensing to underwater and other visually degraded environments through waterproof and hybrid sensor designs. (4) End-to-End Systems and Safety. The paradigm must shift toward closed-loop embodied systems where tactile feedback acts as a continuous supervisory signal (e.g., tactile-informed intrinsic rewards in reinforcement learning). To transition from controlled labs to unstructured human environments, explicitly embedding uncertainty estimation and physical compliance constraints directly into the policy generation loop is imperative. (5) Simulation Synergies and Generalization. The morphological diversity of tactile sensors remains a fundamental barrier. Future research must focus on unified tactile tokenization strategies and high-fidelity, physics-based contact simulations to facilitate cross-domain adaptation. This synergy will enable metalearning frameworks capable of seamlessly transferring manipulation skills across heterogeneous robotic embodiments and novel target objects.
+VIII. CONCLUSION
+This survey comprehensively reviews multimodal tactile fusion from the perspectives of datasets, methods, sensing hardware, and evaluation. We present it as a unified pipeline that connects physical contact signals with computational representations, showing how tactile information complements vision, language, and action to reduce the ambiguity of singlemodality perception. Beyond structured robotic settings, tactile fusion is becoming increasingly important in unstructured and visually degraded environments, where reliable contact feedback provides essential support for perception and control. By linking physical interaction with high-level semantic reasoning, multimodal tactile fusion is expected to play an important role in the development of more general embodied AI systems.
+REFERENCES
+[1] V. Dave, F. Lygerakis, and E. Rueckert, “Multimodal visualtactile representation learning through self-supervised contrastive pre-training,” in 2024 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2024, pp. 80138020. [2] F. Yang, C. Feng, Z. Chen, H. Park, D. Wang, Y. Dou, Z. Zeng, X. Chen, R. Gangopadhyay, A. Owens et al., “Binding touch to everything: Learning unified multimodal tactile representations,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, pp. 26 340–26 353. [3] L. Fu, G. Datta, H. Huang, W. C.-H. Panitch, J. Drake, J. Ortiz, M. Mukadam, M. Lambeta, R. Calandra, and K. Goldberg, “A touch, vision, and language dataset for multimodal alignment,” arXiv preprint arXiv:2402.13232, 2024.
+[4] N. Cheng, Y. Li, J. Gao, B. Fang, J. Xu, and W. Han, “Towards comprehensive multimodal perception: Introducing the touchlanguage-vision dataset,” arXiv preprint arXiv:2403.09813, 2024. [5] W. Ma, X. Cao, Y. Zhang, C. Zhang, S. Yang, P. Hao, B. Fang, Y. Cai, S. Cui, and S. Wang, “Cltp: Contrastive languagetactile pre-training for 3d contact geometry understanding,” arXiv preprint arXiv:2505.08194, 2025.
+[6] N. Cheng, J. Xu, C. Guan, J. Gao, W. Wang, Y. Li, F. Meng, J. Zhou, B. Fang, and W. Han, “Touch100k: A large-scale touch-language-vision dataset for touch-centric multimodal representation,” Information Fusion, p. 103305, 2025. [7] C. Zhang, P. Hao, X. Cao, X. Hao, S. Cui, and S. Wang, “Vtla: Vision-tactile-language-action model with preference learning for insertion manipulation,” arXiv preprint arXiv:2505.09577, 2025. [8] Y. Xie, M. Li, S. Li, X. Li, G. Chen, F. Ma, F. R. Yu, and W. Ding, “Universal visuo-tactile video understanding for embodied interaction,” arXiv preprint arXiv:2505.22566, 2025. [9] R. Feng, J. Hu, W. Xia, T. Gao, A. Shen, Y. Sun, B. Fang, and D. Hu, “Anytouch: Learning unified static-dynamic representation across multiple visuo-tactile sensors,” arXiv preprint arXiv:2502.12191, 2025.
+[10] S. Luo, W. Yuan, E. Adelson, A. G. Cohn, and R. Fuentes, “Vitac: Feature sharing between vision and tactile sensing for cloth texture recognition,” in 2018 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2018, pp. 2722–2727. [11] L. Tong, K. Qian, Z. Yue, and S. Luo, “Can vision feel touch? tactile-aware visual grasping for transparent objects,” IEEE Transactions on Circuits and Systems for Video Technology, 2025. [12] M. Kansana, E. Hossain, S. Rahimi, and N. Amiri Golilarz, “Surformer v1: Transformer-based surface classification using
+
+
+18
+tactile and vision features,” Information, vol. 16, no. 10, p. 839, 2025. [13] Y. Cho, H. Kim, S. Kim, Y. Zhang, Y. Choi, and S. Hong, “Ratouch: Retrieval-augmented touch understanding with enriched visual data,” in Proceedings of the 33rd ACM International Conference on Multimedia, 2025, pp. 1288–1297.
+[14] S. Dargan, M. Kumar, M. R. Ayyagari, and G. Kumar, “A survey of deep learning and its applications: a new paradigm to machine learning,” Archives of computational methods in engineering, vol. 27, no. 4, pp. 1071–1092, 2020. [15] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin, “Attention is all you need,” Advances in neural information processing systems, vol. 30, 2017. [16] W. X. Zhao, K. Zhou, J. Li, T. Tang, X. Wang, Y. Hou, Y. Min, B. Zhang, J. Zhang, Z. Dong et al., “A survey of large language models,” arXiv preprint arXiv:2303.18223, vol. 1, no. 2, 2023. [17] R. Girdhar, A. El-Nouby, Z. Liu, M. Singh, K. V. Alwala, A. Joulin, and I. Misra, “Imagebind: One embedding space to bind them all,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2023, pp. 15 18015 190. [18] J. Gao, N. Cheng, B. Fang, and W. Han, “Transformer in touch: A survey,” arXiv preprint arXiv:2405.12779, 2024.
+[19] Y. Sun, N. Cheng, S. Zhang, W. Li, L. Yang, S. Cui, H. Liu, F. Sun, J. Zhang, D. Guo et al., “Tactile data generation and applications based on visuo-tactile sensors: A review,” Information Fusion, vol. 121, p. 103162, 2025. [20] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proceedings of the IEEE conference on computer vision and pattern recognition, 2016, pp. 770778. [21] A. Dosovitskiy, “An image is worth 16x16 words: Transformers for image recognition at scale,” arXiv preprint arXiv:2010.11929, 2020.
+[22] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “Bert: Pre-training of deep bidirectional transformers for language understanding,” in Proceedings of the 2019 conference of the North American chapter of the association for computational linguistics: human language technologies, volume 1 (long and short papers), 2019, pp. 4171–4186. [23] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark et al., “Learning transferable visual models from natural language supervision,” in International conference on machine learning. PmLR, 2021, pp. 8748–8763. [24] J. Yu, K. Zhang, and Y. Deng, “Recent progress in pressure and temperature tactile sensors: principle, classification, integration and outlook,” Soft Science, vol. 1, no. 1, pp. N–A, 2021. [25] H. Li, Y. Lin, C. Lu, M. Yang, E. Psomopoulou, and N. F. Lepora, “Classification of vision-based tactile sensors: A review,” IEEE Sensors Journal, 2025.
+[26] M. Meribout, N. A. Takele, O. Derege, N. Rifiki, M. El Khalil, V. Tiwari, and J. Zhong, “Tactile sensors: A review,” Measurement, vol. 238, p. 115332, 2024. [27] Y. Wan, Y. Wang, and C. F. Guo, “Recent progresses on flexible tactile sensors,” Materials Today Physics, vol. 1, pp. 61–73, 2017. [28] Q. Li, O. Kroemer, Z. Su, F. F. Veiga, M. Kaboli, and H. J. Ritter, “A review of tactile information: Perception and action through touch,” IEEE Transactions on Robotics, vol. 36, no. 6, pp. 1619–1634, 2020. [29] Z. Yi, Y. Zhang, and J. Peters, “Biomimetic tactile sensors and signal processing with spike trains: A review,” Sensors and Actuators A: Physical, vol. 269, pp. 41–52, 2018.
+[30] W. Yuan, S. Dong, and E. H. Adelson, “Gelsight: Highresolution robot tactile sensors for estimating geometry and force,” Sensors, vol. 17, no. 12, p. 2762, 2017. [31] M. Lambeta, P.-W. Chou, S. Tian, B. Yang, B. Maloon, V. R.
+Most, D. Stroud, R. Santos, A. Byagowi, G. Kammerer et al., “Digit: A novel design for a low-cost compact high-resolution tactile sensor with application to in-hand manipulation,” IEEE Robotics and Automation Letters, vol. 5, no. 3, pp. 3838–3845, 2020. [32] L. Zhang, Y. Wang, and Y. Jiang, “Tac3d: A novel visionbased tactile sensor for measuring forces distribution and estimating friction coefficient distribution,” arXiv preprint arXiv:2202.06211, 2022.
+[33] C. Zhang, S. Cui, S. Wang, J. Hu, Y. Cai, R. Wang, and Y. Wang, “Gelstereo 2.0: An improved gelstereo sensor with multimedium refractive stereo calibration,” IEEE Transactions on Industrial Electronics, vol. 71, no. 7, pp. 7452–7462, 2023. [34] I. H. Taylor, S. Dong, and A. Rodriguez, “Gelslim 3.0: Highresolution measurement of shape, force and slip in a compact tactile-sensing finger,” in 2022 International Conference on Robotics and Automation (ICRA). IEEE, 2022, pp. 10 78110 787. [35] A. Padmanabha, F. Ebert, S. Tian, R. Calandra, C. Finn, and S. Levine, “Omnitact: A multi-directional high-resolution touch sensor,” in 2020 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2020, pp. 618–624. [36] F. R. Hogan, M. Jenkin, S. Rezaei-Shoshtari, Y. Girdhar, D. Meger, and G. Dudek, “Seeing through your skin: Recognizing objects with a novel visuotactile sensor,” in Proceedings of the IEEE/CVF winter conference on applications of computer vision, 2021, pp. 1218–1227. [37] S. Li and H. Tang, “Multimodal alignment and fusion: A survey,” arXiv preprint arXiv:2411.17040, 2024.
+[38] S. Yin, C. Fu, S. Zhao, K. Li, X. Sun, T. Xu, and E. Chen, “A survey on multimodal large language models,” National Science Review, vol. 11, no. 12, p. nwae403, 2024. [39] L. Li, G. Chen, H. Wang, B. Li, B. Wang, Z. Yi, and C. Zhao, “Vhtformer: A joint query perception method for visual-haptictextual information based on transformer,” Applied Soft Computing, p. 113529, 2025. [40] H. Liu, Y. Yu, F. Sun, and J. Gu, “Visual–tactile fusion for object recognition,” IEEE Transactions on Automation Science and Engineering, vol. 14, no. 2, pp. 996–1008, 2016. [41] R. Calandra, A. Owens, M. Upadhyaya, W. Yuan, J. Lin, E. H. Adelson, and S. Levine, “The feeling of success: Does touch sensing help predict grasp outcomes?” arXiv preprint arXiv:1710.05512, 2017.
+[42] W. Yuan, S. Wang, S. Dong, and E. Adelson, “Connecting look and feel: Associating the visual and tactile properties of physical materials,” in Proceedings of the IEEE conference on computer vision and pattern recognition, 2017, pp. 5580–5588. [43] R. Calandra, A. Owens, D. Jayaraman, J. Lin, W. Yuan, J. Malik, E. H. Adelson, and S. Levine, “More than a feeling: Learning to grasp and regrasp using vision and touch,” IEEE Robotics and Automation Letters, vol. 3, no. 4, pp. 3300–3307, 2018. [44] T. Wang, C. Yang, F. Kirchner, P. Du, F. Sun, and B. Fang, “Multimodal grasp data set: A novel visual–tactile data set for robotic manipulation,” International Journal of Advanced Robotic Systems, vol. 16, no. 1, p. 1729881418821571, 2019. [45] Y. Li, J.-Y. Zhu, R. Tedrake, and A. Torralba, “Connecting touch and vision via cross-modal prediction,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2019, pp. 10 609–10 618. [46] F. Yang, C. Ma, J. Zhang, J. Zhu, W. Yuan, and A. Owens, “Touch and go: Learning from human-collected vision and touch,” arXiv preprint arXiv:2211.12498, 2022.
+[47] R. Gao, W. Yuan, and J.-Y. Zhu, “Controllable visual-tactile synthesis,” in Proceedings of the IEEE/CVF International Conference on Computer Vision, 2023, pp. 7040–7052.
+[48] Y. Li, Y. Du, C. Liu, F. Williams, M. Foshey, B. Eckart, J. Kautz, J. B. Tenenbaum, A. Torralba, and W. Matusik, “Learning to jointly understand visual and tactile signals,” in
+
+
+19
+The Twelfth International Conference on Learning Representations, 2023.
+[49] X. Zhu, B. Huang, and Y. Li, “Touch in the wild: Learning fine-grained manipulation with a portable visuo-tactile gripper,” arXiv preprint arXiv:2507.15062, 2025.
+[50] S. Yu, K. Lin, A. Xiao, J. Duan, and H. Soh, “Octopi: Object property reasoning with large tactile-language models,” arXiv preprint arXiv:2405.02794, 2024.
+[51] N. Cheng, J. Xu, J. Chen, and W. Han, “Stola: Selfadaptive touch-language framework with tactile commonsense reasoning in open-ended scenarios,” arXiv preprint arXiv:2505.04201, 2025.
+[52] H.-G. Chi, J. Barreiros, J. Mercat, K. Ramani, and T. Kollar, “Multi-modal representation learning with tactile data,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). IEEE, 2024, pp. 9660–9667. [53] B. Wang, B. Li, T. Gao, L. Li, H. Wang, C. Zhao, and Z. Yi, “Damf: A semantic-guided dynamic attention framework for visual-haptic-textual multimodal fusion,” KnowledgeBased Systems, p. 114244, 2025. [54] B. Li, L. Li, H. Wang, G. Chen, B. Wang, and S. Qiu, “Tvttransformer: A tactile-visual-textual fusion network for object recognition,” Information Fusion, vol. 118, p. 102943, 2025. [55] Z. Cheng, Y. Zhang, W. Zhang, H. Li, K. Wang, L. Song, and H. Zhang, “Omnivtla: Vision-tactile-language-action model with semantic-aligned tactile sensing,” arXiv preprint arXiv:2508.08706, 2025.
+[56] R. Gao, Y.-Y. Chang, S. Mall, L. Fei-Fei, and J. Wu, “Objectfolder: A dataset of objects with implicit visual, auditory, and tactile representations,” arXiv preprint arXiv:2109.07991, 2021. [57] R. Gao, Z. Si, Y.-Y. Chang, S. Clarke, J. Bohg, L. Fei-Fei, W. Yuan, and J. Wu, “Objectfolder 2.0: A multisensory object dataset for sim2real transfer,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2022, pp. 10 598–10 608. [58] R. Gao, Y. Dou, H. Li, T. Agarwal, J. Bohg, Y. Li, L. FeiFei, and J. Wu, “The objectfolder benchmark: Multisensory learning with neural and real objects,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2023, pp. 17 276–17 286. [59] P. Hao, C. Zhang, D. Li, X. Cao, X. Hao, S. Cui, and S. Wang, “Tla: Tactile-language-action model for contact-rich manipulation,” arXiv preprint arXiv:2503.08548, 2025.
+[60] L. Wu, C. Yu, J. Ren, L. Chen, Y. Jiang, R. Huang, G. Gu, and H. Li, “Freetacman: Robot-free visuo-tactile data collection system for contact-rich manipulation,” arXiv preprint arXiv:2506.01941, 2025.
+[61] Y. R. Song, J. Li, R. Fu, D. Murphy, K. Zhou, R. Shiv, Y. Li, H. Xiong, C. E. Owens, Y. Du et al., “Opentouch: Bringing full-hand touch to real-world interaction,” arXiv preprint arXiv:2512.16842, 2025.
+[62] T. Engelbracht, R. Zurbru ̈gg, M. Wohlrapp, M. Bu ̈chner, A. Valada, M. Pollefeys, H. Blum, and Z. Bauer, “Hoi!–a multimodal dataset for force-grounded, cross-view articulated manipulation,” arXiv preprint arXiv:2512.04884, 2025.
+[63] Z. Wan, Y. Ling, S. Yi, L. Qi, W. Lee, M. Lu, S. Yang, X. Teng, P. Lu, X. Yang et al., “Vint-6d: A large-scale object-in-hand dataset from vision, touch and proprioception,” arXiv preprint arXiv:2501.00510, 2024.
+[64] Y. Zheng, S. Gu, W. Li, Y. Zheng, Y. Zang, S. Tian, X. Li, R. Wu, C. Hao, C. Gao, S. Liu, H. Li, Y. Chen, S. Yan, and W. Ding, “Omnivta: Visuo-tactile world modeling for contactrich robotic manipulation,” 2026. [65] A. Krizhevsky, I. Sutskever, and G. E. Hinton, “Imagenet classification with deep convolutional neural networks,” Advances in neural information processing systems, vol. 25, 2012.
+[66] “See, feel, act: Hierarchical learning for complex manipulation skills with multisensory fusion,” Science Robotics, vol. 4,
+no. 26, p. eaav3123, 2019. [67] K. He, G. Gkioxari, P. Dolla ́r, and R. Girshick, “Mask r-cnn,” in Proceedings of the IEEE international conference on computer vision, 2017, pp. 2961–2969. [68] I. Kononenko, “Bayesian neural networks,” Biological Cybernetics, vol. 61, no. 5, pp. 361–370, 1989. [69] X. Li, H. Liu, J. Zhou, and F. Sun, “Learning cross-modal visual-tactile representation using ensembled generative adversarial networks,” Cognitive Computation and Systems, vol. 1, no. 2, pp. 40–44, 2019. [70] I. J. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, and Y. Bengio, “Generative adversarial nets,” Advances in neural information processing systems, vol. 27, 2014.
+[71] M. A. Lee, Y. Zhu, K. Srinivasan, P. Shah, S. Savarese, L. FeiFei, A. Garg, and J. Bohg, “Making sense of vision and touch: Self-supervised learning of multimodal representations for contact-rich tasks,” in 2019 International conference on robotics and automation (ICRA). IEEE, 2019, pp. 8943–8950. [72] A. Dosovitskiy, P. Fischer, E. Ilg, P. Hausser, C. Hazirbas, V. Golkov, P. Van Der Smagt, D. Cremers, and T. Brox, “Flownet: Learning optical flow with convolutional networks,” in Proceedings of the IEEE international conference on computer vision, 2015, pp. 2758–2766. [73] W. Zheng, H. Liu, and F. Sun, “Lifelong visual-tactile crossmodal learning for robotic material perception,” IEEE transactions on neural networks and learning systems, vol. 32, no. 3, pp. 1192–1203, 2020. [74] K. Simonyan and A. Zisserman, “Very deep convolutional networks for large-scale image recognition,” arXiv preprint arXiv:1409.1556, 2014.
+[75] Y. Chen, A. Sipos, M. Van der Merwe, and N. Fazeli, “Visuo-tactile transformers for manipulation,” arXiv preprint arXiv:2210.00121, 2022.
+[76] J. Hansen, F. Hogan, D. Rivkin, D. Meger, M. Jenkin, and G. Dudek, “Visuotactile-rl: Learning multimodal manipulation policies with deep reinforcement learning,” in 2022 International Conference on Robotics and Automation (ICRA). IEEE, 2022, pp. 8298–8304. [77] D. Yarats, R. Fergus, A. Lazaric, and L. Pinto, “Mastering visual continuous control: Improved data-augmented reinforcement learning,” arXiv preprint arXiv:2107.09645, 2021.
+[78] B. Li, J. Bai, S. Qiu, H. Wang, and Y. Guo, “Vito-transformer: a visual-tactile fusion network for object recognition,” IEEE Transactions on Instrumentation and Measurement, vol. 72, pp. 1–10, 2023. [79] I. O. Tolstikhin, N. Houlsby, A. Kolesnikov, L. Beyer, X. Zhai, T. Unterthiner, J. Yung, A. Steiner, D. Keysers, J. Uszkoreit et al., “Mlp-mixer: An all-mlp architecture for vision,” Advances in neural information processing systems, vol. 34, pp. 24 261–24 272, 2021. [80] H. Rasheed, M. U. Khattak, M. Maaz, S. Khan, and F. S. Khan, “Fine-tuned clip models are efficient video learners,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2023, pp. 6545–6554.
+[81] W.-L. Chiang, Z. Li, Z. Lin, Y. Sheng, Z. Wu, H. Zhang, L. Zheng, S. Zhuang, Y. Zhuang, J. E. Gonzalez, I. Stoica, and E. P. Xing, “Vicuna: An open-source chatbot impressing gpt-4 with 90%* chatgpt quality,” March 2023. [Online]. Available: https://lmsys.org/blog/2023-03-30-vicuna/ [82] Y. Fang, X. Zhang, W. Xu, G. Liu, and J. Zhao, “Bidirectional visual-tactile cross-modal generation using latent feature space flow model,” vol. 172, p. 106088, 2024. [83] S. Yu, K. Lin, and H. Soh, “Demonstrating the octopi1.5 visual-tactile-language model,” arXiv preprint arXiv:2507.09985, 2025.
+[84] P. Wang, S. Bai, S. Tan, S. Wang, Z. Fan, J. Bai, K. Chen, X. Liu, J. Wang, W. Ge et al., “Qwen2-vl: Enhancing visionlanguage model’s perception of the world at any resolution,”
+
+
+20
+arXiv preprint arXiv:2409.12191, 2024.
+[85] L. Heng, H. Geng, K. Zhang, P. Abbeel, and J. Malik, “Vitacformer: Learning cross-modal representation for visuo-tactile dexterous manipulation,” arXiv preprint arXiv:2506.15953, 2025. [86] F. Lygerakis, O. O ̈ zdenizci, and E. R ̈uckert, “Vitapes: Visuotactile position encodings for cross-modal alignment in multimodal transformers,” arXiv preprint arXiv:2505.20032, 2025. [87] D. Chen, P. Gao, T. Fan, L. Wei, and J. Liu, “Object attribute recognition method integrating visual-tactile data and multitask learning,” IEEE Sensors Journal, 2025. [88] M. Kansana, S. Penchala, S. Rahimi, and N. A. Golilarz, “Surformer v2: A multimodal classifier for surface understanding from touch and vision,” arXiv preprint arXiv:2509.04658, 2025. [89] M. Tan and Q. Le, “Efficientnetv2: Smaller models and faster training,” in International conference on machine learning. PMLR, 2021, pp. 10 096–10 106. [90] L. Xue, N. Yu, S. Zhang, A. Panagopoulou, J. Li, R. Mart ́ınMart ́ın, J. Wu, C. Xiong, R. Xu, J. C. Niebles et al., “Ulip2: Towards scalable multimodal pre-training for 3d understanding,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, pp. 27 09127 101. [91] Z. Wu, Y. Zhao, and S. Luo, “Convitac: Aligning visualtactile fusion with contrastive representations,” arXiv preprint arXiv:2506.20757, 2025.
+[92] T. Li, C. Yu, Y. Yan, D. Song, Y. Shuai, Y. Wang, and G. Chen, “Vtlg: A vision-tactile-language grasp generation method oriented towards task,” Robotics and Computer-Integrated Manufacturing, vol. 98, p. 103152, 2026. [93] S. Qiu, B. Li, X. Wang, H. Wang, and H. Ye, “Dt-transformer: A text-tactile fusion network for object recognition,” IEEE Transactions on Haptics, 2024.
+[94] G. Huang, Z. Liu, L. Van Der Maaten, and K. Q. Weinberger, “Densely connected convolutional networks,” in Proceedings of the IEEE conference on computer vision and pattern recognition, 2017, pp. 4700–4708. [95] G. Ye, Z. Zhang, X. Zhao, S. Wu, H. Lu, S. Lu, and H. Liu, “Learning to feel the future: Dreamtacvla for contact-rich manipulation,” arXiv preprint arXiv:2512.23864, 2025.
+[96] J. Bi, K. Y. Ma, C. Hao, M. Z. Shou, and H. Soh, “Vla-touch: Enhancing vision-language-action models with dual-level tactile feedback,” arXiv preprint arXiv:2507.17294, 2025.
+[97] A. Hurst, A. Lerer, A. P. Goucher, A. Perelman, A. Ramesh, A. Clark, A. Ostrow, A. Welihinda, A. Hayes, A. Radford et al., “Gpt-4o system card,” arXiv preprint arXiv:2410.21276, 2024. [98] X. Zhang, C. Zhang, B. Zhang, Z. Peng, S. Cui, and S. Wang, “Dextac: Learning contact-aware visuotactile policies via hand-by-hand teaching,” arXiv preprint arXiv:2601.21474, 2026. [99] H. Yuan, W. Yi, Z. Zhang, W. Chen, Y. Mo, J. Yin, X. Li, X. Zeng, C. Wen, C. Lu, K. Driggs-Campbell, and I. Lourentzou, “Vtam: Video-tactile-action models for complex physical interaction beyond vlas,” 2026. [100] H. Liu and F. Sun, “Visual–tactile fusion material identification using dictionary learning,” in Robotic Tactile Perception and Understanding: A Sparse Coding Method. Springer, 2018, pp. 159–182. [101] B. Fang, F. Sun, H. Liu, C. Tan, and D. Guo, “A glove-based system for object recognition via visual-tactile fusion,” Science China. Information Sciences, vol. 62, no. 5, p. 50203, 2019. [102] J. Yin, H. Qi, Y. Wi, S. Kundu, M. Lambeta, W. Yang, C. Wang, T. Wu, J. Malik, and T. Hellebrekers, “Osmo: Opensource tactile glove for human-to-robot skill transfer,” arXiv preprint arXiv:2512.08920, 2025.
+[103] C. Lin, B. Huo, M. Yu, E. Ruppel, B. Chen, J. Francis, and D. Zhao, “Lighttact: A visual-tactile fingertip sensor
+for deformation-independent contact sensing,” arXiv preprint arXiv:2512.20591, 2025.
+[104] Y. Li, Y. Chen, Z. Zhao, P. Li, T. Liu, S. Huang, and Y. Zhu, “Simultaneous tactile-visual perception for learning multimodal robot manipulation,” arXiv preprint arXiv:2512.09851, 2025. [105] F. Sun, B. Fang, H. Xue, H. Liu, and H. Huang, “A novel multi-modal tactile sensor design using thermochromic material,” Science China. Information Sciences, vol. 62, no. 11, p. 214201, 2019. [106] J. Shan, J. Zhao, J. Liu, X. Wang, Z. Xia, G. Chen, Z. Ren, G. Xu, and B. Fang, “Magicgel: A novel visual-based tactile sensor design with magnetic gel,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). IEEE, 2025, pp. 19 767–19 774. [107] S. Zhang, J. Du, Y. Sun, F. Sun, H. Liu, Y. Yang, and B. Fang, “A braille detection system based on visuo-tactile sensing,” Measurement, vol. 247, p. 116827, 2025. [108] S. Zhang, Y. Yang, F. Sun, L. Bao, J. Shan, Y. Gao, and B. Fang, “A compact visuo-tactile robotic skin for micronlevel tactile perception,” IEEE Sensors Journal, vol. 24, no. 9, pp. 15 273–15 282, 2024. [109] T. Cheng, K. Chen, L. Chen, L. Zhang, Y. Zhang, Y. Ling, M. Hamad, Z. Bing, F. Wu, K. Sharma et al., “Tacumi: A multi-modal universal manipulation interface for contact-rich tasks,” arXiv preprint arXiv:2601.14550, 2026.
+[110] H. Choi, Y. Hou, C. Pan, S. Hong, A. Patel, X. Xu, M. R. Cutkosky, and S. Song, “In-the-wild compliant manipulation with umi-ft,” arXiv preprint arXiv:2601.09988, 2026.
+[111] Q. Mao, Z. Liao, J. Yuan, and R. Zhu, “Multimodal tactile sensing fused with vision for dexterous robotic housekeeping,” Nature Communications, vol. 15, no. 1, p. 6871, 2024. [112] Y. Lv, Z. Ma, J. Duan, G. Sun, P. Wang, S. Qu, F. Liu, C. Meng, X. Lin, T. Liu et al., “Biomimetic hydrogel-based sensors with dual-mode dynamic-static tactile sensing capability enabling robotic hand for intelligent material property recognition,” InfoMat, p. e70041, 2025. [113] W. Zheng, K. Liu, D. Guo, W. Yang, J. Zhu, and H. Liu, “A large-area tactile sensor for distributed force sensing using highly sensitive piezoresistive sponge,” in 2024 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2024, pp. 1063–1069. [114] W. Zheng, D. Guo, W. Yang, and H. Liu, “A large-area robotic skin for intelligent tactile interaction of collaborative robots,” IEEE/ASME Transactions on Mechatronics, 2025.
+[115] J. Wu, L. Zhang, W. Chang, H. Zhang, W. Zhang, T. Mei, X. Zhu, L. Wang, M. Zhang, and K. Xiao, “A biomimetic ionic hydrogel synapse for self-powered tactile-visual fusion perception,” Advanced Functional Materials, p. 2500048, 2025.
+[116] L. Li, H. Xue, Y. Shao, J. Wang, Z. Zhu, H. Sun, B. Zhu, X. Pu, and F. Sun, “Pollen-biochar-based tactile-pain dualfunction sensors for intelligent robotics,” Advanced Functional Materials, p. e22727, 2025. [117] S. Li, T. Wu, J. Xu, Y. Huang, Z. Zhang, H. Zhao, Q. Xu, Z. Wang, L. Ye, Y. Yang et al., “Biomimetic multimodal tactile sensing enables human-like robotic perception,” Nature Sensors, vol. 1, no. 1, pp. 52–62, 2026. [118] Q. Ye, Q. Liu, S. Wang, J. Chen, Y. Cui, K. Jin, H. Chen, X. Cai, G. Li, and J. Chen, “Visual-tactile pretraining and online multitask learning for humanlike manipulation dexterity,” Science Robotics, vol. 11, no. 110, p. eady2869, 2026. [119] M. A. Lee, Y. Zhu, P. Zachares, M. Tan, K. Srinivasan, S. Savarese, L. Fei-Fei, A. Garg, and J. Bohg, “Making sense of vision and touch: Learning multimodal representations for contact-rich tasks,” IEEE Transactions on Robotics, vol. 36, no. 3, pp. 582–596, 2020.

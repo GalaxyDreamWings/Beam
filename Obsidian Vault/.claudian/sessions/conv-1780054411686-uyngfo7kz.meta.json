@@ -1,0 +1,24 @@
+{
+  "id": "conv-1780054411686-uyngfo7kz",
+  "providerId": "claude",
+  "title": "Respond to status inquiry",
+  "titleGenerationStatus": "success",
+  "createdAt": 1780054411689,
+  "updatedAt": 1780054456692,
+  "lastResponseAt": 1780054414381,
+  "sessionId": "7330dfa9-9f59-4a33-a75a-6d0053c4ca8a",
+  "providerState": {
+    "providerSessionId": "7330dfa9-9f59-4a33-a75a-6d0053c4ca8a"
+  },
+  "currentNote": "Pasted Image 20260526222620_274.svg",
+  "usage": {
+    "model": "opus",
+    "inputTokens": 0,
+    "cacheCreationInputTokens": 0,
+    "cacheReadInputTokens": 0,
+    "contextWindow": 200000,
+    "contextTokens": 0,
+    "percentage": 0,
+    "contextWindowIsAuthoritative": false
+  }
+}
