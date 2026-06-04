@@ -13,10 +13,10 @@
             "state": {
               "type": "excalidraw",
               "state": {
-                "file": "Excalidraw/Isaac.md"
+                "file": "Excalidraw/WorldModel.md"
               },
               "icon": "excalidraw-icon",
-              "title": "Isaac"
+              "title": "WorldModel"
             }
           }
         ]
@@ -76,7 +76,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 225.5
+    "width": 285.5
   },
   "right": {
     "id": "e0f4ac3a4ef94a71",
@@ -173,11 +173,12 @@
             }
           }
         ],
-        "currentTab": 5
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 353.5
+    "width": 353.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -197,13 +198,26 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "7327b45bf097116e",
+  "active": "0ec0f006ccc9f8a8",
   "lastOpenFiles": [
-    "Excalidraw/RAG.md",
+    "2605.00080v1.pdf",
+    "Excalidraw/WorldModel.md",
+    "Pasted Image 20260604100811_039.png",
     "Excalidraw/Isaac.md",
     "Excalidraw/skill.md",
-    "Pasted Image 20260526222620_274.svg",
+    "Excalidraw/RAG.md",
+    "Excalidraw/MotionControl.md",
+    "Excalidraw/HELIX02.md",
+    "HELIX02.md",
+    "2026-06-03 15-50-25.mp4",
+    "录屏 2026-06-04 09-50-26.webm",
+    "录屏 2026-06-04 09-53-30.webm",
+    "Pasted Image 20260604094817_345.png",
+    "2026-06-03 15-41-02.mp4",
+    "2026-06-03 15-39-51.mp4",
     "仿真平台.md",
+    "2026-06-03 15-39-51_0.mp4",
+    "Pasted Image 20260526222620_274.svg",
     "未命名.base",
     "未命名",
     "欢迎.md",
