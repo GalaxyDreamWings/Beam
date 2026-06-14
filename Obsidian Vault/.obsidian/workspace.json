@@ -4,19 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "be5db9b85d0710f6",
+        "id": "8adad7a8b05df860",
         "type": "tabs",
         "children": [
           {
-            "id": "7327b45bf097116e",
+            "id": "9eed0ad5cfc030ac",
             "type": "leaf",
             "state": {
-              "type": "excalidraw",
+              "type": "markdown",
               "state": {
-                "file": "Excalidraw/Isaac.md"
+                "file": "运控.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "excalidraw-icon",
-              "title": "Isaac"
+              "icon": "lucide-file",
+              "title": "运控"
             }
           }
         ]
@@ -76,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 285.5
+    "width": 350.5
   },
   "right": {
     "id": "e0f4ac3a4ef94a71",
@@ -198,21 +200,25 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "7327b45bf097116e",
+  "active": "0ec0f006ccc9f8a8",
   "lastOpenFiles": [
-    "仿真平台.md",
+    "2605.00080v1.pdf",
+    "运控.md",
+    "未命名.md",
+    "().md",
     "Excalidraw/MotionControl.md",
-    "Excalidraw/HELIX02.md",
+    "仿真平台.md",
+    "Excalidraw/Isaac.md",
+    "gemini-code-1781424110210.html",
     "HELIX02.md",
+    "Excalidraw/HELIX02.md",
+    "Pasted Image 20260604100811_039.png",
+    "录屏 2026-06-04 09-50-26.webm",
+    "录屏 2026-06-04 09-53-30.webm",
     "Excalidraw/WorldModel.md",
     "Excalidraw/skill.md",
     "Excalidraw/RAG.md",
-    "Excalidraw/Isaac.md",
-    "2605.00080v1.pdf",
-    "Pasted Image 20260604100811_039.png",
     "2026-06-03 15-50-25.mp4",
-    "录屏 2026-06-04 09-50-26.webm",
-    "录屏 2026-06-04 09-53-30.webm",
     "Pasted Image 20260604094817_345.png",
     "2026-06-03 15-41-02.mp4",
     "2026-06-03 15-39-51.mp4",
@@ -222,7 +228,6 @@
     "未命名",
     "欢迎.md",
     "创建链接.md",
-    "Excalidraw/Drawing 2026-04-29 22.29.54.excalidraw.md",
-    "Excalidraw"
+    "Excalidraw/Drawing 2026-04-29 22.29.54.excalidraw.md"
   ]
 }

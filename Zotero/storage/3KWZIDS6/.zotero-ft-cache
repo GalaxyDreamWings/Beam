@@ -1,0 +1,213 @@
+Unreal Robotics Lab: A High-Fidelity Robotics Simulator with
+Advanced Physics and Rendering
+Jonathan Embley-Riches, Jianwei Liu, Simon Julier, Dimitrios Kanoulas
+Fig. 1: Photorealistic renderings created by our simulation framework. Top row (types of robots): Unitree Go1 quadruped, Skydio X2 quadropter and Unitree B1-Z1 qudruped mobile manipulator Bottom row: various adverse visual conditions.
+Abstract— High-fidelity simulation is essential for robotics research, enabling safe and efficient testing of perception, control, and navigation algorithms. However, achieving both photorealistic rendering and accurate physics modeling remains a challenge. This paper presents a novel simulation framework, the Unreal Robotics Lab (URL), that integrates the advanced rendering capabilities of the Unreal Engine with MuJoCo’s high-precision physics simulation. Our approach enables realistic robotic perception while maintaining accurate physical interactions, facilitating benchmarking and dataset generation for vision-based robotics applications. The system supports complex environmental effects, such as smoke, fire, and water dynamics, which are critical to evaluating robotic performance under adverse conditions. We benchmark visual navigation and SLAM methods within our framework, demonstrating its utility for testing real-world robustness in controlled yet diverse scenarios. By bridging the gap between physics accuracy and photorealistic rendering, our framework provides a powerful tool for advancing robotics research and sim-to-real transfer. Our open-source framework is available at https: //unrealroboticslab.github.io/.
+I. INTRODUCTION
+Simulation plays a crucial role in robotics research, enabling safe, efficient, and cost-effective development, testing, and validation of robotic systems before real-world deployment. High-fidelity simulation environments provide realistic perception and physics interactions, bridging the gap between simulation and reality. However, achieving both photorealism and accurate physics simultaneously remains a
+*equal contribution
+challenge due to computational constraints and the complexity of real-world dynamics [1]. This paper presents a novel simulation pipeline that combines the rendering capabilities of Unreal Engine [2] with the advanced physics simulation of MuJoCo [3] to create photorealistic environments for robotics applications. By integrating these two frameworks, our approach delivers high-quality simulation results suitable for tasks such as perception training, dataset generation, and benchmarking. A key advantage of this pipeline is its ability to generate complex and dynamic environmental effects — such as smoke, fire, and water waves — which are crucial to training robots to handle diverse and unpredictable conditions. These effects enable the simulation of rare events that are difficult to capture in real-world datasets or reproduce in existing general-purpose robotics simulators. As a result, they can be used to benchmark vision-based policies under out-ofdistribution conditions and generate training data for visualbased navigation. We present a novel, open-source simulation framework — the Unreal Robotics Lab (URL) that integrates Unreal Engine for photorealistic rendering with MuJoCo for accurate physics simulation. Unlike existing simulators focused on specific domains (e.g. autonomous driving or aerial robotics) or embodied AI for limited robots, our system is designed for general-purpose robotic applications, supporting quadrupeds, manipulators, UAVs, and more. While powerful general-purpose simulators such as Isaac Sim [4] offer broad capabilities, our framework prioritizes physical
+arXiv:2504.14135v2 [cs.RO] 23 Nov 2025
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.
+
+
+fidelity by utilizing the MuJoCo physics engine, which is highly validated for its accuracy and stability in contact-rich control tasks. Additionally, we incorporate CoACD-based convex decomposition [5] for improved non-convex object representation. Our key contributions are:
+• High-Fidelity Physics with Photorealistic Rendering: Synchronization of MuJoCo’s physics with Unreal Engine’s advanced rendering (Lumen, Nanite, Niagara) enables realistic perception-based training and benchmarking.
+• Generalized Benchmarking for Diverse Conditions: A structured benchmarking system evaluates robotic perception and control under rare conditions (e.g., smoke, fog, dynamic lighting, dynamic movement).
+• Comprehensive Sensor and Control Framework: Built-in support for cameras, IMUs, force sensors, and controllers for various robot types, with Robot Operating System (ROS) compatibility.
+• Open-Source and Extensible: The system will be released as open-source, supporting modular extensions for new controllers, planners, and robotic platforms.
+II. RELATED WORK
+Robotic simulation has advanced significantly in recent years, with various frameworks addressing key challenges such as physics accuracy, photorealistic rendering, and realtime performance. This section reviews related work in three main areas: robotics-focused simulation platforms, comparisons of physics engines, and benchmarking SLAM and navigation under adverse visual conditions. Several other game engines and simulation platforms offer photorealistic rendering [6], [7], [8], but Unreal Engine provides distinct advantages through Lumen global illumination and Nanite virtualized geometry. Unlike other simulators that rely on hardware-intensive ray tracing, Lumen [2] enables real-time global illumination and reflections without requiring precomputed lighting, making it well-suited for dynamic environments where lighting conditions change. Furthermore, Nanite’s automatic level of detail (LOD) [2] system allows highly detailed assets with millions of triangles to be rendered efficiently, without affecting performance. This is particularly beneficial for large-scale or highfidelity indoor environments where maintaining real-time performance is critical. Beyond rendering, Unreal Engine offers a flexible and extensible ecosystem, supporting thirdparty plugins, visual scripting, AI-driven NPCs, and crossplatform deployment, making it highly adaptable for a variety of robotic simulation tasks. These features ensure that simulations can achieve both high physical accuracy and photorealistic perception, making them an ideal choice for vision-based robotics research.
+A. Robotics-Focused Simulation Platforms
+Robotic simulation has made considerable progress, with numerous frameworks addressing challenges in physics accuracy, rendering quality, and real-time performance. This section reviews related work in three primary areas: robotics
+simulation platforms, comparisons of physics engines, and benchmarking of SLAM and navigation under adverse visual conditions. Several simulation platforms have been developed for robotic perception, control, and reinforcement learning, each with different trade-offs in realism and efficiency. Gazebo [9] is a widely-used open-source simulator that supports multiple physics engines (ODE [9], Simbody [10], (Py)Bullet [11], DART [12]), although its rendering capabilities lag behind modern game-engine-based simulators. MuJoCo [3] excels in efficient and accurate physics modeling for robotic control but lacks built-in photorealistic rendering. GPU-accelerated platforms such as Isaac Orbit [6] and Isaac Gym [13] enable large-scale reinforcement learning, prioritizing speed over advanced rendering. Isaac Sim [4], built on NVIDIA Omniverse, provides extensible robotics simulation with high-fidelity physics via PhysX [14]—which excels in angular stability and scalability but may lag in accuracy for contact dynamics and linear stability compared to MuJoCo. Intel SPEAR [15] provides photorealistic indoor environments suitable for embodied AI research. CARLA [8] and AirSim [16] leverage Unreal Engine for photorealistic urban and aerial simulations, with a focus on autonomous driving and drone applications. CARLA, in particular, emphasizes high-level decision-making, such as traffic light interactions and multi-agent traffic flow, rather than finegrained vehicle dynamics like tire skidding. However, both simulators are largely domain-specific, limiting their utility for broader robotics applications beyond driving and aerial scenarios. RoboSuite [17] and RoboCasa [18] emphasize robotic manipulation using MuJoCo for precise physics but offer limited environmental complexity. Although most simulators prioritize either physics accuracy or visual realism, few achieve both. Our approach bridges this gap by integrating MuJoCo (precise physics) with Unreal Engine (state-of-theart rendering), creating a high-fidelity simulation pipeline for diverse robotic applications.
+B. Physics Engines for Robotics Simulation
+Physics engines are essential for realistic robotic simulation, particularly for modeling contact, soft-body dynamics, and fluid interactions. Various engines have been evaluated in terms of accuracy, efficiency, and scalability, with notable differences in their suitability for robotics [19]. MuJoCo [3] excels in soft-contact modeling, accuracy, and stability, making it ideal for complex robotic tasks such as grasping and locomotion. However, it lacks built-in high-fidelity rendering. ODE (Open Dynamics Engine) [9], commonly used in Gazebo, faces stability issues in high-DOF tasks and requires extensive parameter tuning. Bullet [11] is popular for reinforcement learning and manipulation, but its precision lags behind MuJoCo. Unreal Engine’s Chaos and Havok physics solvers [20] are optimized for game physics and real-time effects, excelling in destruction, fluid, and particle-based simulations. However, they are not designed for robotic applications that need softcontact modeling or high-precision joint dynamics. NVIDIA PhysX [14] offers GPU-accelerated simulation suitable for
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.
+
+
+fast reinforcement learning, but its omission of Coriolis forces makes it unsuitable for high-accuracy control. Our approach combines MuJoCo’s precise physics, which are validated for their accuracy and stability [19], with Unreal Engine’s advanced rendering. This integration achieves both photorealism and accurate simulation for robotic applications. It also provides a broad feature set by inheriting the built-in capabilities of both Unreal Engine and MuJoCo.
+C. Benchmarking SLAM and Navigation Under Adverse Visual Conditions
+Evaluating SLAM and navigation algorithms in diverse environments is challenging, as many existing datasets capture structured scenarios under ideal conditions, making it difficult to test performance under adverse effects such as smoke, fog or dynamic lighting. Envodat [21] provides a dataset tailored for challenging conditions, but real-world data collection remains limited in scale and diversity. Our simulation pipeline fills this gap by synthetically generating rare-event scenarios, enabling benchmarking and training of vision-based navigation policies in controlled, repeatable settings. Current simulation platforms often emphasize either high-precision physics (e.g., MuJoCo, Isaac Gym) or photorealistic rendering (e.g., Unreal-based simulators such as Carla and AirSim). While our work shares a similar goal with recent simulators such as SPEAR [15] simulator in combining Unreal Engine with MuJoCo, our frameworks are built on fundamentally different design philosophies. SPEAR is primarily structured as a Python-based OpenAI Gym environment, making it well-suited for task-specific, algorithmic research in embodied AI. In contrast, our framework is designed for systems-level validation through its native ROS integration, allowing researchers to test a complete robotics software stack as it would be deployed in the real world. This focus on flexible, real-world system replication is further reflected in our integrated workflow. Our framework allows users to build and simulate scenes directly within the Unreal Editor, automatically handling all asset processing. This streamlined approach eliminates the need for separate scripts and manual data handling for importing and exporting assets, which can be required in other simulators. Ultimately, this design makes URL a generalized platform where users can freely import any MuJoCo-compatible robot and construct custom tasks, rather than focusing on a curated set of prebuilt scenes and benchmarks. Furthermore, by leveraging Unreal’s Niagara Particle and Fluid effects, we enable simulation of adverse environmental conditions such as smoke, fire, and water waves, extending traditional benchmarking capabilities and providing robust tools for evaluating robotic perception and navigation under challenging scenarios. Beyond rendering, UE’s mature ecosystem accelerates robotics research. We utilize its built-in NavMesh and Behavior Tree tools to script complex, dynamic scenarios with moving NPCs and vehicles, creating environments that are not just visually realistic but also behaviorally rich. This is critical for testing planner robustness in non-static worlds, a feature often lacking in physics-focused simulators.
+III. SIMULATOR SETUP
+A. Overview
+Our simulator is implemented as a UE plugin centered around a custom SimManager Actor, with the overall architecture shown in Fig. 4. This Actor manages several core sub-systems: a SceneManager for processing assets and constructing the MuJoCo scene, a PhysicsManager to synchronize MuJoCo physics with UE rendering, and Benchmark and Replay systems for performance evaluation and data logging. The pipeline begins with the SceneManager scanning for actors with a UCustomPhysicsComponent, processing their properties to construct a MuJoCo Specification (MjSpec), and compiling the final physics model. The system supports standard robots defined via MuJoCo XML with corresponding UE assets, including sensors such as cameras, IMUs, and force sensors. Communication leverages a modified ROS plugin [22] for compatibility with existing robotics frameworks, allowing the simulator to act as a high-fidelity, real-world surrogate for testing robotics behaviors and perception. To complement the physics and data pipeline, our framework uses the larger set of features of Unreal Engine to build rich and dynamic worlds. This includes high-fidelity rendering for perception research (Lumen, Nanite), rapid world-building with automated NavMesh generation for pathfinding, and complex scenario creation using Behavior Trees for intelligent agents and the Niagara system for adverse weather and effects.
+B. Scene Building and Asset Processing
+UE actors are configured for MuJoCo using a UCustomPhysicsComponent, which contains an intermediate PhysicsObject to synchronize geometry and state between the two engines. The settings of this component dictate how the object is processed for simulation. Its geometric complexity setting (Complex or Simple) determines how meshes are converted into convex hulls for MuJoCo’s collision system, using either CoACD [5] for decomposition or direct compiler approximation. The component also controls the object’s mobility (static or dynamic) via an override or by defaulting to the actor’s native UE setting. The SceneManger then iterates over all actors with the UCustomPhysicsComponent and processes the assets with their containing parameters. Meshes that are processed with CoACD are saved in the
+(a) Unreal Engine Landscape (b) MuJoCo HeightField
+Fig. 3: Unreal Engine Landscape conversion to MuJoCo HeightField.
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.
+
+
+Fig. 4: Unreal - MuJoCo Simulator system diagram
+project’s SavedDir for caching. UE landscapes are converted to MuJoCo height fields using multithreaded raycasts within a user-defined bounding box at a set resolution, as shown in Fig. 3. This targeted approach avoids processing entire large-scale terrains while still capturing fine details such as small clutter, preserving key environmental features for the physics simulation. MjSpec is then used to generate the final MuJoCo Model and XML file. Robotic assets, packaged as UE pawns with their own XML, are automatically detected and added into the MjSpec. Sensors are defined as sites in the robot’s XML, and we employ a hybrid sensing approach: non-visual data (IMUs, force sensors) is sourced directly from MuJoCo, while visual data (cameras, LiDAR) is rendered in UE for photorealism. The exported XML and assets can also be used to run the scene as a standalone MuJoCo simulation, independent of UE.
+C. Physics Manager
+The physics simulation operates asynchronously, running within a separate execution thread to maximize performance. Specifically, the MuJoCo physics state is advanced by calling mj step within a dedicated thread that maintains a configurable physics timestep (e.g., 1000 Hz) by yielding control between steps. Meanwhile, the Unreal Engine rendering thread operates independently at its own rate, typically 60 FPS or higher, depending on scene complexity. Transformation updates are managed in a dedicated asynchronous thread within UE to maintain real-time synchronization with MuJoCo. To ensure data integrity, locking mechanisms are used when the rendering thread accesses the latest physics state, a design that mimics the behavior of MuJoCo’s native simulate GUI and decouples rendering performance from physics fidelity. External forces applied within MuJoCo can be propagated to UE entities, allowing for bidirectional interaction between the simulation and the rendered environment. UE physics can still be used for objects not managed by MuJoCo.
+D. Communication
+Our framework uses a modified ROS plugin [22] that automates the communication layer. This plugin automatically publishes all sensor data from both MuJoCo and UE to their corresponding ROS topics, the names of which are derived
+directly from the sensor definitions in the robot’s XML file. Similarly, for robot control, the plugin dynamically generates subscribers for any defined actuators or joints. This allows standard robotics controllers to send actuator or joint commands directly to MuJoCo.
+E. Benchmark System
+The benchmarking system automates metric recording and management through a structured, extensible framework built upon a MetricManager and a BaseMetric class. The BaseMetric class provides a fundamental interface for all metrics, handling time-series data storage and defining a consistent lifecycle with methods for initialization, reset, and CSV export. New metrics can be created by deriving from this class to implement domain-specific logic while inheriting the core data-handling functionality. The MetricManager automatically discovers and registers all metric classes by scanning project definitions, allowing users to select and configure them for each experiment via a UI. By default, the system tracks core metrics such as DistanceToGoal (distance to target), Collisions (contact events), TimeToGoal (task completion time), and GlobalPose (absolute pose). All metrics are recorded at discrete intervals and saved as CSV files in designated experiment folders, with support for configurable grace periods and timeouts to ensure reproducible results.
+F. Replay System
+Our system has an automated recording and replay mechanism for sensor and body pose data, allowing efficient data collection and experimentation. It uses custom structs to track only essential information, pose data, sensor readings, and timestamps, storing them in a queue for minimal overhead and precise sequence reproduction. Data streams are managed through separate JSON files that can be dynamically saved and loaded at runtime. By publishing replayed data on the same ROS topics as live data, the system integrates seamlessly with existing pipelines. This allows researchers to collect data once and replay them in visually modified environments, supporting domain adaptation, robustness testing, and dataset enhancement for machine learning and benchmarking.
+G. Example Deployment of Robots, Controllers, and Visual Planners
+The system provides a unified framework in which robots, controllers, and planners operate as in real-world deployments. All components communicate through ROS, ensuring seamless integration with external systems.
+1) Example Robot Integrations: The framework supports quadrupeds, quadruped mobile manipulators, UAVs, and robotic manipulators, enabling diverse experimental setups for locomotion, aerial navigation, and manipulation. 2) Controllers: The system includes joint controllers based on position and torque, as well as more advanced controllers such as Walk-These-Ways [23] and VBC [24]. UAVs use a PID-based controller, whereas manipulators rely on inverse kinematics (IK) methods such as Mink [25]. Since
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.
+
+
+controllers operate within the ROS ecosystem, new control strategies can be easily integrated. 3) Planners: Motion planning is handled using learningbased and optimization-based planners such as ViNT [26], GNM [27], and NoMAD [28]. The ROS-based architecture of the framework ensures compatibility with additional external planners. 4) Visual SLAM: The system includes visual SLAM techniques such as OrbSLAM2 [29], OrbSLAM3 [30], and MASt3R-SLAM [31], enabling real-time localization and mapping. These methods integrate directly into the framework, enabling realistic perception and mapping in simulated environments.
+IV. EXPERIMENTS
+A. Simulation and Real-World Comparision
+To evaluate the alignment between simulated and realworld visual inputs for image encoders, we employ GradCAM, EigenCAM, cosine similarity and KL Divergence. These methods assess both spatial attention and feature distribution similarity. Grad-CAM computes the gradient of the class score yc with respect to feature map activations:
+αc
+k= 1
+Z
+X
+i
+X
+j
+∂yc
+∂Ak
+ij
+, Lc = ReLU
+X
+k
+αc
+k Ak
+!
+(1)
+EigenCAM generates class-agnostic saliency maps via principal component analysis (PCA):
+C= 1
+Z
+X
+i,j
+(Ak
+ij − μ)(Ak
+ij − μ)T , LEigenCAM = v1Ak (2)
+where μ is the mean activation and v1 is the first principal component. Cosine Similarity measures feature alignment between real and simulated embeddings:
+Scosine(P, Q) = P · Q
+∥P ∥∥Q∥ (3)
+where P and Q are feature vectors. Higher values indicate stronger similarity. KL Divergence quantifies distribution differences:
+DKL(P ∥Q) =
+X
+i
+P (i) log P (i)
+Q(i) (4)
+Lower values indicate closer alignment. To compare models trained on real-world data, we use CLIP [32] and the EfficientNet-B0 [33] visual encoder used in ViNT [26]. We first capture an image from the real world and recreate it within our simulator. Then both images are processed using Grad-CAM amd Eigen-Cam to generate attention heatmaps, as shown in Figure 5. In both cases, the models primarily attend to the traffic cone in the center of the hallway as well as the end of the corridor, suggesting that the most salient features are preserved between the real and simulated environments. This alignment indicates that the models are focusing on the same high-level structures regardless of domain, reinforcing the realism of the simulated scene in
+(a) Real image (b) Sim image
+(c) GradCAM of CLIP on real image
+(d) GradCAM of CLIP on Sim image
+(e) EigenCam of EfficientNet on real image
+(f) EigenCam of EfficientNet on Sim image
+Fig. 5: Comparison of real-world (left) and simulated (right) images, along with their corresponding Grad-CAM (CLIP) and EigenCAM (EfficientNet-B0) heatmaps. The highlighted class label is ”cone”.
+Metric Office Hallway Flat Hallway Bedroom Avg
+KL divergence 0.4679 0.4435 0.5103 0.4739 Cosine similarity 0.7157 0.7231 0.6895 0.7094
+TABLE I: Image comparison metrics between real-world scenes and simulated recreations.
+terms of feature representation. The similarity in attention patterns also suggests that key objects remain distinguishable across domains, which is critical for transfer learning and sim-to-real applications. We further quantified the visual similarity between our hand-crafted simulations and realworld scenes by computing the KL divergence and cosine similarity for three scenes. These simulations were not built as photo-realistic replicas but as a proof of concept that our system can generate scenes visually representative of real conditions. As detailed in Table I, the Hallway scene, for example, yielded a KL divergence of 0.4679 and a cosine similarity of 0.7157, and an average of 0.4739 and 0.7094 in all scenes. These findings, along with our GradCAM and EigenCAM comparisons, confirm that our simulation is visually realistic enough for our evaluation purposes.
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.
+
+
+B. Visual Navigation and SLAM Benchmarking
+We benchmark standard methods to demonstrate simulator realism. We evaluated visual navigation (Experiment 1) with GNM [27] and ViNT [26], and visual SLAM (Experiment 2) with ORB-SLAM2 [29], ORB-SLAM3 [30], and MASt3RSLAM [31]. Each method was run 5 times per condition, averaging results across trials. Both experiments used the Unitree Go1 quadruped with its onboard camera and the Walk-These-Ways low-level controller for realistic deployment. The benchmarks were conducted in two distinct environments—warehouse and residential house—under three adversity levels: none, minor and major, classified by human judgment. UE’s Niagara system simulated environmental effects (smoke, rain, pollution, snow), while dynamic lighting and NPC movements were added for major adversity. Figure 1 shows example environments and Figure 6 shows examples of adversity levels.
+1) Experiment 1: Visual Navigation: For visual navigation benchmarking, the robot was initialized at identical starting locations across environments and adversity levels. Each method had a fixed duration to reach the goal using a pre-built image-based topological map. The warehouse and residential house were used for this experiment. Methods were not fine-tuned, relying on a simplified topological map approach from the authors’ original repository [28], which may limit performance [34].
+Success Weighted by Collision (SC). Following [35], we adopt the SC metric:
+SC = 1
+N
+N
+X
+i=1
+Si
+1 1 + ci
+, (5)
+where Si is the success indicator for episode i, ci is the number of collisions, and N is the total episodes. Higher SC values indicate fewer collisions in successful runs, while lower values reflect frequent or severe collisions. Alongside SC, we measure success rate, total collisions, time to goal, and goal distance. Table II presents the results, including Weighted SC to factor in collision penalties. State-of-the-art methods perform well under normal conditions, with ViNT generally outperforming GNM. Under minor adversity, GNM maintains a higher success rate but takes longer, while ViNT completes faster when successful. However, performance declines as environmental adversity increases (e.g., obstacles, smoke, rain), with both methods experiencing more collisions, longer
+(a) None (b) Minor (c) Major
+Fig. 6: Examples of the different adversity levels for the House Environment.
+Env Adversity Method Success
+rate↑ Collisions↓ Time
+to Goal↓
+Goal Dist↓
+Weighted SC↑
+House
+Major GNM 0.2 13 0 7.01 0.0154
+ViNT 0 9.2 0 8.41 0 Minor GNM 1 1.2 71.59 1.99 0.5333
+ViNT 0.4 2.8 0 4.75 0.09 None GNM 1 1.8 147.86 1.99 0.3667
+ViNT 1 0.8 141.35 2.00 0.7333
+Warehouse
+Major GNM 0 12.8 0 8.33 0
+ViNT 0 6.4 0 7.96 0 Minor GNM 0.4 4 107.62 4.69 0.1067
+ViNT 0.2 6.6 54.91 6.61 0.0250 None GNM 0.8 3.4 102.86 2.53 0.1889
+ViNT 0.8 4.4 90.14 2.59 0.3667
+TABLE II: Performance of different Visual navigation methods under various environments and varying adverse effects.
+times to goal, and lower SC. In severe adversity, neither method succeeds in the Warehouse, leading to zero SC. These failures are likely attributable to the dense, volumetric smoke simulated by the Niagara system, which caused persistent occlusion and aliasing of key visual features, preventing the vision-based planners from identifying a valid path. This suggests that these models struggle in extreme conditions due to limited training data, highlighting the need for training in diverse high-adversity conditions, which can be generated more effectively in simulation. The ability to create controlled but realistic adverse scenarios in a simulated environment provides a path to improve robustness in real-world deployments.
+2) Experiment 2: Visual SLAM: This experiment used our replay system, where a teleoperated robot followed predefined trajectories optimized for SLAM. Initial runs recorded robot poses and sensor data, which were later replayed with identical conditions but varying visual effects. Each SLAM method was then evaluated, and performance metrics were computed.
+Absolute Trajectory Error (ATE) measures the global accuracy of an estimated trajectory by computing the RMSE between estimated positions pˆi and ground truth positions pi:
+ATE =
+v u u t
+1 n
+n
+X
+i=1
+(pi − pˆi)2 (6)
+Coverage measures the ratio of the estimated trajectory length to the ground truth:
+Coverage =
+Pn−1
+i=1 ∥pi+1 − pi∥ Pn−1
+i=1 ∥ˆpi+1 − pˆi∥ (7)
+Note that since monocular SLAM estimates trajectories with arbitrary scale, Umeyama’s method [36] is applied for scale and pose correction before computing coverage. Poor tracking or alignment can result in coverage exceeding 100%. Scaled ATE adjusts ATE for localization failures:
+Scaled ATE = ATE
+Coverage (8)
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.
+
+
+(a) Scaled ATE
+(b) Coverage
+Fig. 7: comparision of different Visual SLAM algorithms under different visual effects
+Env Adver. OrbSLAM2 Mono OrbSLAM3 Mono MASt3R-SLAM
+ATE↓ Scaled
+ATE↓
+Cover
+age↑ ATE↓ Scaled
+ATE↓
+Cover
+age↑ ATE↓ Scaled
+ATE↓
+Coverage↑
+Warehouse
+None 4.23 6.61 0.639 5.29 7.72 0.685 0.324 0.322 1.01 Minor 5.33 10.1 0.527 5.21 8.80 0.592 1.55 1.77 0.872 Major 2.96 20.2 0.147 4.29 5.87 0.731 0.252 0.417 0.605
+House
+None 3.49 4.64 0.752 1.69 1.17 1.45 0.274 0.326 0.840 Minor 0.513 1.23 0.415 0.547 1.81 0.302 0.257 0.300 0.855 Major 0.475 2.53 0.188 2.70 11.6 0.233 0.275 0.284 0.966
+TABLE III: Performance of Different VSLAM Methods under Varying Visual Effects.
+From Table III and Fig. 7, Visual SLAM performance degrades with increasing visual adversity, highlighting sensitivity to challenging conditions. ORB-SLAM2 struggles the most, with sharp declines in coverage and increased ATE, particularly in the warehouse environment. ORB-SLAM3 performs well in clean conditions but deteriorates significantly under adversity, suggesting reduced robustness to occlusions, lighting changes, and dynamic elements. MASt3RSLAM maintains the lowest ATE and highest coverage across conditions, demonstrating superior resilience to visual disturbances. Under severe visual adversity, all methods experience increased ATE and reduced coverage, highlighting the inherent challenges of maintaining reliable SLAM performance in dynamic or visually degraded environments. These replaybased evaluations provide a controlled, repeatable framework for assessing SLAM robustness across different levels of adversity, reinforcing the need for training and evaluation in diverse, high-adversity conditions to enhance real-world deployment reliability.
+3) Experiment 3: Real-world: Visual SLAM algorithms were evaluated on realworld tunnel dataset [37] under two
+Env Adver. Frames tracked [%] ↑
+OrbSLAM2 Mono
+OrbSLAM3 Mono
+Mast3R SLAM
+Mine Clean 7.83 59.6 100
+Smoky 0.00 38.5 43.6
+TABLE IV: Performance of Different VSLAM Methods under Varying Visual Effects in the Real-World.
+conditions: clear and smoky, where a section of the tunnel was obscured by smoke generated from a smoke machine. Examples of these conditions are shown in Fig. 8. The percentage of tracked frames under these conditions was measured for various visual SLAM algorithms, results can be seen in Tab. IV, where it can be seen that the tracking performance of all SLAM algorithm degrades significantly under smoky conditions, consistent with the findings from our simulated experiments.
+(a) Clean (b) with Smoke
+Fig. 8: Examples of Realworld Tunnel data [37] used for evaluating VSLAM algorithm under adverse visual conditions.
+4) Discussion: Our experiments collectively demonstrate that current state-of-the-art visual navigation and SLAM algorithms, while proficient in ideal conditions, remain brittle to the types of realistic, adverse visual phenomena that are produced by our framework and that are encountered in the realworld. The observed performance degradation highlights a critical gap in current training and testing paradigms. Futhermore, because adverse real-world datasets are scarce, there is a reinforced need for high-fidelity simulators such as URL, which can generate controlled, repeatable, and diverse high-adversity scenarios to advance the development of more robust robotic perception systems.
+V. CONCLUSION
+This paper presents a high-fidelity robotics simulation framework that integrates advanced photorealistic rendering with precise physics modeling to support vision-based robotics research and benchmarking. Using Unreal Engine’s rendering capabilities and MuJoCo’s accurate physics, our system enables evaluation of robotic navigation and SLAM methods under diverse and adverse environmental conditions. Experimental results confirm that our simulator provides a robust testbed for evaluating real-world robustness in controlled, repeatable scenarios. Despite its strengths, the system has certain limitations, including the absence of direct
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.
+
+
+reinforcement learning (RL) support, lack of deformable terrain simulation, limited scene generation capabilities, and a focus on general robotics rather than autonomous vehicles or high-precision drone simulations. To address these limitations and further enhance our simulator, we plan to further enhance the MuJoCo integration, allowing the simulator to communicate with a standalone MuJoCo process and run RL environments (MuJoCo Playground [38]), generate synthetic datasets to enhance vision-based model training, expand automated scene generation, and enable imitation learning via VR-based teleoperation. Overall, our platform serves as a robust foundation for benchmarking and data generation, bridging the gap between simulation and real-world robotics deployment.
+REFERENCES
+[1] A. Szot, A. Clegg, E. Undersander, E. Wijmans, Y. Zhao, J. Turner, N. Maestre, M. Mukadam, D. S. Chaplot, O. Maksymets, et al., “Habitat 2.0: Training home assistants to rearrange their habitat,” Advances in neural information processing systems, vol. 34, pp. 251266, 2021. [2] Epic Games, “Unreal Engine.” [Online]. Available: https://www. unrealengine.com [3] E. Todorov, T. Erez, and Y. Tassa, “Mujoco: A physics engine for model-based control,” in 2012 IEEE/RSJ international conference on intelligent robots and systems. IEEE, 2012, pp. 5026–5033.
+[4] NVIDIA, “Isaac Sim.” [Online]. Available: https://github.com/ isaac-sim/IsaacSim [5] X. Wei, M. Liu, Z. Ling, and H. Su, “Approximate convex decomposition for 3d meshes with collision-aware concavity and tree search,” ACM Transactions on Graphics (TOG), vol. 41, no. 4, pp. 1–18, 2022. [6] M. Mittal, C. Yu, Q. Yu, J. Liu, N. Rudin, D. Hoeller, J. L. Yuan, R. Singh, Y. Guo, H. Mazhar, et al., “Orbit: A unified simulation framework for interactive robot learning environments,” IEEE Robotics and Automation Letters, vol. 8, no. 6, pp. 3740–3747, 2023. [7] X. Puig, E. Undersander, A. Szot, M. D. Cote, T.-Y. Yang, R. Partsey, R. Desai, A. W. Clegg, M. Hlavac, S. Y. Min, et al., “Habitat 3.0: A co-habitat for humans, avatars and robots,” arXiv preprint arXiv:2310.13724, 2023.
+[8] A. Dosovitskiy, G. Ros, F. Codevilla, A. Lopez, and V. Koltun, “CARLA: An open urban driving simulator,” in Conference on robot learning. PMLR, 2017, pp. 1–16. [9] N. Koenig and A. Howard, “Design and use paradigms for gazebo, an open-source multi-robot simulator,” in 2004 IEEE/RSJ international conference on intelligent robots and systems (IROS)(IEEE Cat. No. 04CH37566), vol. 3. IEEE, 2004, pp. 2149–2154. [10] M. A. Sherman, A. Seth, and S. L. Delp, “Simbody: multibody dynamics for biomedical research,” Procedia Iutam, vol. 2, pp. 241261, 2011. [11] E. Coumans and Y. Bai, “Pybullet, a python module for physics simulation for games, robotics and machine learning,” 2016. [12] J. Lee, M. X. Grey, S. Ha, T. Kunz, S. Jain, Y. Ye, S. S. Srinivasa, M. Stilman, and C. Karen Liu, “Dart: Dynamic animation and robotics toolkit,” The Journal of Open Source Software, vol. 3, no. 22, p. 500, 2018. [13] V. Makoviychuk, L. Wawrzyniak, Y. Guo, M. Lu, K. Storey, M. Macklin, D. Hoeller, N. Rudin, A. Allshire, A. Handa, et al., “Isaac gym: High performance gpu-based physics simulation for robot learning,” arXiv preprint arXiv:2108.10470, 2021.
+[14] NVIDIA, “NVIDIA PhysX.” [Online]. Available: https://developer. nvidia.com/physx-sdk [15] M. Roberts, R. Prakash, R. Wang, Q. Leboutet, S. R. Richter, S. Leutenegger, R. Tang, M. M ̈uller, G. Ros, and V. Koltun, “SPEAR: A simulator for photorealistic embodied ai research,” http://github. com/spear-sim/spear. [16] S. Shah, D. Dey, C. Lovett, and A. Kapoor, “Airsim: High-fidelity visual and physical simulation for autonomous vehicles,” in Field and Service Robotics: Results of the 11th International Conference. Springer, 2018, pp. 621–635.
+[17] Y. Zhu, J. Wong, A. Mandlekar, R. Martı ́n-Mart ́ın, A. Joshi, K. Lin, A. Maddukuri, S. Nasiriany, and Y. Zhu, “robosuite: A Modular Simulation Framework and Benchmark for Robot Learning,” in arXiv preprint arXiv:2009.12293, 2020.
+[18] S. Nasiriany, A. Maddukuri, L. Zhang, A. Parikh, A. Lo, A. Joshi, A. Mandlekar, and Y. Zhu, “RoboCasa: Large-Scale Simulation of Everyday Tasks for Generalist Robots,” in Robotics: Science and Systems, 2024.
+[19] T. Erez, Y. Tassa, and E. Todorov, “Simulation tools for modelbased robotics: Comparison of bullet, havok, mujoco, ode and physx,” in 2015 IEEE international conference on robotics and automation (ICRA). IEEE, 2015, pp. 4397–4404. [20] Havok, “Havok Physics.” [Online]. Available: https://www.havok.com/ [21] L. Nwankwo, B. Ellensohn, V. Dave, P. Hofer, J. Forstner, M. Villneuve, R. Galler, and E. Rueckert, “Envodat: A large-scale multisensory dataset for robotic spatial awareness and semantic reasoning in heterogeneous environments,” arXiv preprint arXiv:2410.22200, 2024. [22] P. Mania and M. Beetz, “A framework for self-training perceptual agents in simulated photorealistic environments,” in International Conference on Robotics and Automation (ICRA), Montreal, Canada, 2019. [23] G. B. Margolis and P. Agrawal, “Walk these ways: Tuning robot control for generalization with multiplicity of behavior,” in Conference on Robot Learning. PMLR, 2023, pp. 22–31. [24] M. Liu, Z. Chen, X. Cheng, Y. Ji, R. Qiu, R. Yang, and X. Wang, “Visual Whole-Body Control for Legged Loco-Manipulation,” The 8th Conference on Robot Learning, 2024.
+[25] K. Zakka, “Mink: Python inverse kinematics based on MuJoCo,” July 2024. [Online]. Available: https://github.com/kevinzakka/mink [26] D. Shah, A. Sridhar, N. Dashora, K. Stachowicz, K. Black, N. Hirose, and S. Levine, “ViNT: A Foundation Model for Visual Navigation,” in Conference on Robot Learning. PMLR, 2023, pp. 711–733.
+[27] D. Shah, A. Sridhar, A. Bhorkar, N. Hirose, and S. Levine, “Gnm: A general navigation model to drive any robot,” in 2023 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2023, pp. 7226–7233. [28] A. Sridhar, D. Shah, C. Glossop, and S. Levine, “Nomad: Goal masked diffusion policies for navigation and exploration,” in 2024 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2024, pp. 63–70. [29] R. Mur-Artal and J. D. Tard ́os, “ORB-SLAM2: an open-source SLAM system for monocular, stereo and RGB-D cameras,” IEEE Transactions on Robotics, vol. 33, no. 5, pp. 1255–1262, 2017. [30] C. Campos, R. Elvira, J. J. G. Rodrı ́guez, J. M. Montiel, and J. D. Tardo ́s, “Orb-slam3: An accurate open-source library for visual, visual–inertial, and multimap slam,” IEEE Transactions on Robotics, vol. 37, no. 6, pp. 1874–1890, 2021. [31] R. Murai, E. Dexheimer, and A. J. Davison, “Mast3r-slam: Realtime dense slam with 3d reconstruction priors,” arXiv preprint arXiv:2412.12392, 2024.
+[32] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark, et al., “Learning transferable visual models from natural language supervision,” in International conference on machine learning. PmLR, 2021, pp. 8748–8763.
+[33] M. Tan and Q. Le, “Efficientnet: Rethinking model scaling for convolutional neural networks,” in International conference on machine learning. PMLR, 2019, pp. 6105–6114. [34] R. Dhruv, “Issue #5 - visualnav transformer,” GitHub Issues, 2025, accessed: 2025-03-01. [Online]. Available: https://github.com/ robodhruv/visualnav-transformer/issues/5 [35] A. Eftekhar, L. Weihs, R. Hendrix, E. Caglar, J. Salvador, A. Herrasti, W. Han, E. VanderBil, A. Kembhavi, A. Farhadi, et al., “The One RING: a Robotic Indoor Navigation Generalist,” arXiv preprint arXiv:2412.14401, 2024.
+[36] S. Umeyama, “Least-squares estimation of transformation parameters between two point patterns,” IEEE Transactions on Pattern Analysis & Machine Intelligence, vol. 13, no. 04, pp. 376–380, 1991. [37] V. Kubelka, E. Fritz, and M. Magnusson, “Do we need scan-matching in radar odometry?” in 2024 IEEE International Conference on Robotics and Automation (ICRA). IEEE, 2024, pp. 13 710–13 716. [38] K. Zakka, B. Tabanpour, Q. Liao, M. Haiderbhai, S. Holt, J. Y. Luo, A. Allshire, E. Frey, K. Sreenath, L. A. Kahrs, et al., “Mujoco playground,” arXiv preprint arXiv:2502.08844, 2025.
+CreatedwithMasterPDFEditor.Fornon-commercialuseonly.

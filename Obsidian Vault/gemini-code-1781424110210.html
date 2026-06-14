@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>足式机器人运动控制（Locomotion）核心演进史</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19; --card-bg: #131c2e; --border-color: #24324d;
+            --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-light: #cbd5e1;
+            --color-model: #38bdf8; --color-blind: #3b82f6; --color-imitation: #fb7185;
+            --color-perceptive: #2dd4bf; --color-foundation: #c084fc; --color-survey: #f59e0b;
+        }
+
+        /* 强力修复：根节点全面解除高度死锁，强制开辟纵向滚动 */
+        html, body {
+            height: auto !important;
+            min-height: 100vh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            scroll-behavior: smooth;
+            margin: 0; padding: 40px 20px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px; margin: 0 auto;
+            height: auto !important; display: block !important;
+            padding-bottom: 80px;
+        }
+
+        header { text-align: center; margin-bottom: 40px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
+        header h1 { font-size: 2.2rem; color: #38bdf8; margin: 0 0 10px 0; font-weight: 800; }
+        header p { color: var(--text-secondary); font-size: 1.05rem; margin: 0; }
+
+        /* 范式分类面板 */
+        .legend-panel { background: rgba(19, 28, 46, 0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 30px; }
+        .legend-grid { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; font-size: 0.8rem; font-weight: 600; color: var(--text-light); background: rgba(15, 23, 42, 0.6); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+        /* 版块标题 */
+        .section-title { font-size: 1.3rem; font-weight: 800; margin: 35px 0 20px 0; padding-left: 12px; display: flex; align-items: center; }
+        .title-survey { border-left: 4px solid var(--color-survey); color: var(--text-primary); }
+        .title-timeline { border-left: 4px solid var(--color-model); color: var(--text-primary); }
+
+        /* 综述网格 */
+        .survey-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; margin-bottom: 40px; }
+        .survey-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-top: 4px solid var(--color-survey); border-radius: 8px; padding: 18px; }
+
+        /* 时间线结构 */
+        .timeline { position: relative; margin: 20px 0; padding-left: 25px; border-left: 2px solid var(--border-color); height: auto !important; }
+        .timeline-item { position: relative; margin-bottom: 35px; width: 100%; height: auto !important; }
+        .timeline-item::before { content: ''; position: absolute; left: -34px; top: 6px; width: 14px; height: 14px; border-radius: 50%; background-color: var(--bg-color); border: 3px solid var(--border-color); z-index: 2; }
+        
+        .timeline-item.stage-model::before { border-color: var(--color-model); }
+        .timeline-item.stage-blind::before { border-color: var(--color-blind); }
+        .timeline-item.stage-imitation::before { border-color: var(--color-imitation); }
+        .timeline-item.stage-perceptive::before { border-color: var(--color-perceptive); }
+        .timeline-item.stage-foundation::before { border-color: var(--color-foundation); }
+
+        .time-badge { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; display: inline-flex; align-items: center; }
+        .stage-model .time-badge { color: var(--color-model); }
+        .stage-blind .time-badge { color: var(--color-blind); }
+        .stage-imitation .time-badge { color: var(--color-imitation); }
+        .stage-perceptive .time-badge { color: var(--color-perceptive); }
+        .stage-foundation .time-badge { color: var(--color-foundation); }
+
+        .stage-tag { font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; margin-left: 10px; font-weight: 700; text-transform: uppercase; }
+        .stage-model .stage-tag { background: rgba(56, 189, 248, 0.1); color: var(--color-model); border: 1px solid rgba(56, 189, 248, 0.25); }
+        .stage-blind .stage-tag { background: rgba(59, 130, 246, 0.1); color: var(--color-blind); border: 1px solid rgba(59, 130, 246, 0.25); }
+        .stage-imitation .stage-tag { background: rgba(251, 113, 133, 0.1); color: var(--color-imitation); border: 1px solid rgba(251, 113, 133, 0.25); }
+        .stage-perceptive .stage-tag { background: rgba(45, 212, 191, 0.1); color: var(--color-perceptive); border: 1px solid rgba(45, 212, 191, 0.25); }
+        .stage-foundation .stage-tag { background: rgba(192, 132, 252, 0.1); color: var(--color-foundation); border: 1px solid rgba(192, 132, 252, 0.25); }
+
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); }
+        .paper-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px 0; color: var(--text-primary); line-height: 1.4; }
+        .paper-author { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; font-style: italic; }
+        
+        .link-btn { display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 700; text-decoration: none; padding: 3px 8px; border-radius: 4px; margin-bottom: 12px; background: #0f172a; border: 1px solid #334155; }
+        .stage-model .link-btn { color: var(--color-model); }
+        .stage-blind .link-btn { color: var(--color-blind); }
+        .stage-imitation .link-btn { color: var(--color-imitation); }
+        .stage-perceptive .link-btn { color: var(--color-perceptive); }
+        .stage-foundation .link-btn { color: var(--color-foundation); }
+        .survey-card .link-btn { color: var(--color-survey); }
+
+        .tech-details { margin: 0; padding-left: 15px; color: var(--text-light); font-size: 0.9rem; }
+        .tech-details li { margin-bottom: 6px; }
+        .tech-details strong { color: var(--text-primary); font-weight: 600; }
+        .term { background: rgba(255, 255, 255, 0.05); padding: 1px 4px; border-radius: 3px; font-family: monospace; font-size: 0.8rem; color: #e2e8f0; }
+
+        @media (max-width: 768px) {
+            body { padding: 20px 10px; }
+            header h1 { font-size: 1.6rem; }
+            .survey-grid { grid-template-columns: 1fr; }
+            .timeline { padding-left: 18px; }
+            .timeline-item::before { left: -26px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>足式机器人运动控制 (Locomotion) 纵向图谱</h1>
+        <p>解析从刚体解析力学、本体盲行、对抗运动模仿、多模态感知到行为具身大模型的技术断代</p>
+    </header>
+
+    <div class="legend-panel">
+        <div class="legend-grid">
+            <div class="legend-item"><div class="legend-dot" style="background: var(--color-model);"></div>Model-Based (刚体解析)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--color-blind);"></div>Blind RL (本体盲行)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--color-imitation);"></div>Physics-Imitation (运动模仿)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--color-perceptive);"></div>Perceptive Adaption (感知自适应)</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--color-foundation);"></div>Embodied Foundation (行为大模型)</div>
+        </div>
+    </div>
+
+    <div class="section-title title-survey">📚 领域系统性综述 / Systematic Surveys</div>
+    <div class="survey-grid">
+        <div class="survey-card">
+            <div class="paper-title">"A Systematic Review of Deep Reinforcement Learning for Legged Robot Locomotion"</div>
+            <a class="link-btn" href="https://scholar.google.com/scholar?q=A+Systematic+Review+of+Deep+Reinforcement+Learning+for+Legged+Robot+Locomotion" target="_blank">🔗 学术检索</a>
+            <ul class="tech-details">
+                <li><strong>技术覆盖：</strong>横跨单步态周期优化到端到端泛化，深度剖析动力学泛化(Domain Randomization)数学本源。</li>
+                <li><strong>底层核心：</strong>解构 MuJoCo、Isaac Gym 等物理引擎在处理多体接触碰撞与非线性接触力解算时的根本差异。</li>
+            </ul>
+        </div>
+        <div class="survey-card">
+            <div class="paper-title">"Deep Reinforcement Learning for Robotics: A Survey of Real-World Successes"</div>
+            <a class="link-btn" href="https://scholar.google.com/scholar?q=Deep+Reinforcement+Learning+for+Robotics+A+Survey+of+Real+World+Successes" target="_blank">🔗 学术检索</a>
+            <ul class="tech-details">
+                <li><strong>技术覆盖：</strong>提炼跨越 Sim-to-Real 鸿沟的工程通解，涵盖状态机解耦、双速率异步控制等物理部署范式。</li>
+                <li><strong>底层核心：</strong>聚焦执行器时延、零次保持器(ZOH)效应以及实机通信抖动引发的闭环控制策略失稳与收敛退化。</li>
+            </ul>
+        </div>
+        <div class="survey-card">
+            <div class="paper-title">"Imitation Learning for Legged Robot Locomotion: a Survey"</div>
+            <a class="link-btn" href="https://scholar.google.com/scholar?q=Imitation+Learning+for+Legged+Robot+Locomotion+a+Survey" target="_blank">🔗 学术检索</a>
+            <ul class="tech-details">
+                <li><strong>技术覆盖：</strong>专项总结如何将人类动捕数据(MoCap)与轨迹优化(TO)专家样本无缝转译为神经网络闭环动作。</li>
+                <li><strong>底层核心：</strong>系统拆解行为克隆(BC)与生成对抗模仿(GAIL)在处理高动态足式交互时极易遭遇的协变量偏移问题。</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-title title-timeline">🚀 里程碑技术演进 / Technical Milestones</div>
+    <div class="timeline">
+
+        <div class="timeline-item stage-model">
+            <div class="time-badge">1969 <span class="stage-tag">Model-Based</span></div>
+            <div class="card">
+                <div class="paper-title">"Contribution to the synthesis of biped gait"</div>
+                <div class="paper-author">Vukobratović, M., & Juricić, D.</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>确立 <span class="term">零力矩点 (ZMP)</span> 动态平衡判据。</li>
+                    <li><strong>核心管线：</strong>将足底接触面的惯性力与重力合力矩投射归零，将多体接触碰撞强约束简化为准静态判定，统治了早期解析控制。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-model">
+            <div class="time-badge">2003 <span class="stage-tag">Model-Based</span></div>
+            <div class="card">
+                <div class="paper-title">"Biped walking pattern generation by a simple preview control method"</div>
+                <div class="paper-author">Kajita, S., et al.</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>引入 <span class="term">线性倒立摆模型 (LIPM)</span> + 预观控制 (Preview Control)。</li>
+                    <li><strong>核心管线：</strong>约束质心(CoM)高度以解耦非线性项。基于未来步态期望构造二次型指标，通过最优控制在线生成可执行的质心轨迹。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-model">
+            <div class="time-badge">2018 <span class="stage-tag">Model-Based</span></div>
+            <div class="card">
+                <div class="paper-title">"Dynamic locomotion in the MIT Cheetah 3 through convex model predictive control"</div>
+                <div class="paper-author">Di Carlo, J., et al. (MIT)</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>凸模型预测控制 (<span class="term">Convex MPC</span>) + 全身控制 (WBC) 级联。</li>
+                    <li><strong>核心管线：</strong>低频(50Hz)单刚体动力学解算二次规划(QP)获取最优足端反作用力(GRF)；高频(1kHz)逆动力学将力映射为关节转矩。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-imitation">
+            <div class="time-badge">2018 <span class="stage-tag">Imitation</span></div>
+            <div class="card">
+                <div class="paper-title">"DeepMimic: Example-Guided Deep Reinforcement Learning of Physics-Based Character Skills"</div>
+                <div class="paper-author">Peng, X. B., Abbeel, P., Levine, S., & van de Panne, M. (UC Berkeley)</div>
+                <a class="link-btn" href="https://arxiv.org/abs/1804.02717" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>显式轨迹追踪强化学习 + 随机初始状态初始化 (ISI)。</li>
+                    <li><strong>核心管线：</strong>动作空间直接输出关节目标角度，奖励函数由精密的姿态、速度追踪项与任务项线性组合，物理复刻空翻等极限特技。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-blind">
+            <div class="time-badge">2019 <span class="stage-tag">Blind RL</span></div>
+            <div class="card">
+                <div class="paper-title">"Learning agile and dynamic motor skills for legged robots"</div>
+                <div class="paper-author">Hwangbo, J., et al. (ETH Zurich / ANYmal)</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>数据驱动的高精度 <span class="term">执行器网络 (Actuator Network)</span>。</li>
+                    <li><strong>核心管线：</strong>弃用传统刚性电机线性假设，用微型网络拟合电机制动非线性死区、热衰减及齿轮反冲间隙，打通了高频转矩力控的 Sim-to-Real 屏障。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-perceptive">
+            <div class="time-badge">2020 <span class="stage-tag">Perceptive</span></div>
+            <div class="card">
+                <div class="paper-title">"Learning quadrupedal locomotion over challenging terrain"</div>
+                <div class="paper-author">Lee, J., Hwangbo, J., Wellhausen, L., Koltun, V., & Hutter, M.</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>时域卷积网络 (<span class="term">TCN</span>) 历史记忆隐式环境编码。</li>
+                    <li><strong>核心管线：</strong>仿真中 Critic 网络读取特权物理向量；Actor 网络利用 TCN 提取本体感受历史时序特征，无视觉实机安全穿越雪地与泥泞。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-perceptive">
+            <div class="time-badge">2021 <span class="stage-tag">Perceptive</span></div>
+            <div class="card">
+                <div class="paper-title">"RMA: Rapid Motor Adaptation for Legged Locomotion"</div>
+                <div class="paper-author">Kumar, A., Fu, Z., Bajaj, D., Malik, J., & Qi, X. (Meta / UC Berkeley)</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2107.04034" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>特权信息双阶段蒸馏架构 (<span class="term">Teacher-Student</span>)。</li>
+                    <li><strong>核心管线：</strong>阶段一在仿真中训练融合特权向量 e_t 的 Teacher；阶段二利用 Adaptation 模块仅依赖历史本体感受流在线逼近估计的 e_t，确立标准落地范式。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-imitation">
+            <div class="time-badge">2021 <span class="stage-tag">Imitation</span></div>
+            <div class="card">
+                <div class="paper-title">"AMP: Adversarial Motion Priors for Stylized Physics-Based Character Control"</div>
+                <div class="paper-author">Peng, X. B., Ma, Z., Abbeel, P., Levine, S., & Kanazawa, A.</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2104.02180" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>非时间对齐的无约束风格对抗先验 (<span class="term">Discriminator</span>)。</li>
+                    <li><strong>核心管线：</strong>彻底摒弃逐帧角度追踪。判别器在线区分策略轨迹 (s, s') 与无标签人类动捕库，将判别器似然 log(D(s,s')) 作为奖励，自发涌现自然步态。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-imitation">
+            <div class="time-badge">2022 <span class="stage-tag">Imitation</span></div>
+            <div class="card">
+                <div class="paper-title">"ASE: Large-Scale Reusable Adversarial Skill Embeddings"</div>
+                <div class="paper-author">Peng, X. B., et al. (NVIDIA Team)</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2205.02364" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>信息瓶颈约束的低维隐式运动词表潜空间。</li>
+                    <li><strong>核心管线：</strong>利用互信息最大化原则，在 Isaac Gym 并行仿真中将海量非结构化动捕压缩至连续隐空间 z ∈ R^d，当下层完成基础对齐后，供上层任务无缝重组和调用。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-blind">
+            <div class="time-badge">2022 <span class="stage-tag">Blind RL</span></div>
+            <div class="card">
+                <div class="paper-title">"Learning to walk in minutes using massively parallel RL"</div>
+                <div class="paper-author">Rudin, N., Hoeller, D., Reist, P., & Hutter, M. (ETH Zurich)</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2109.11978" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>显显存内零拷贝的大规模 GPU 级并行网络。</li>
+                    <li><strong>核心管线：</strong>将数千个机器人实体碰撞解算与 PPO 策略更新全量常驻单一 GPU 显存，粉碎了 CPU-GPU 间的 PCIe 传输瓶颈，步态训练缩短至分钟级。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-perceptive">
+            <div class="time-badge">2022 <span class="stage-tag">Perceptive</span></div>
+            <div class="card">
+                <div class="paper-title">"Learning robust locomotion over challenging terrain"</div>
+                <div class="paper-author">Miki, T., et al. (ETH Zurich)</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>基于置信度门控的选择性感知融合 (<span class="term">Belief Gate</span>)。</li>
+                    <li><strong>核心管线：</strong>对抗野外深度相机高频出现的噪点、盲区。当外部局部高程图置信度暴跌时，置信度门控自动将视觉输入归零，策略平滑且无阶跃地退守至本体感受盲行。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-imitation">
+            <div class="time-badge">2023 <span class="stage-tag">Imitation</span></div>
+            <div class="card">
+                <div class="paper-title">"Perpetual Humanoid Control for Real-time Simulated Avatars"</div>
+                <div class="paper-author">Luo, Z., Cao, J., Winkler, A., Kitani, K., & Xu, W. (CMU / Meta)</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2305.06456" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>渐进式多阶段容量分配管线 (<span class="term">PMCP</span>)。</li>
+                    <li><strong>核心管线：</strong>面对数万条非结构化、高动态行为剪辑，网络容量随动扩充，在无人工重置复位前提下，解决非连续转换带来的崩溃与灾难性遗忘。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-imitation">
+            <div class="time-badge">2023 <span class="stage-tag">Imitation</span></div>
+            <div class="card">
+                <div class="paper-title">"BeyondMimic: Generative Motion Priors for Task-Driven Physics-Based Character Control"</div>
+                <div class="paper-author">Mao, Y., et al.</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2305.08051" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>任务导向的解耦式生成运动先验 (<span class="term">Decoupled Task-Style Priors</span>)。</li>
+                    <li><strong>核心管线：</strong>将高级动作生成与低级全身力控(WBC)解耦。上层采用 Diffusion 或 Transformer 轨迹生成器将非物理对抗信号转化为高维通用运动常识，下层在物理仿真(Isaac Lab)中重构控制流。</li>
+                    <li><strong>断代意义：</strong>打破传统对抗模仿只能在数据集凸包内受限的死局。机器人不仅能模仿现有动作，在面临未知高难任务时还能自发进行行为外推与重组。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-perceptive">
+            <div class="time-badge">2024 <span class="stage-tag">Perceptive</span></div>
+            <div class="card">
+                <div class="paper-title">"Extreme Parkour with Legged Robots"</div>
+                <div class="paper-author">Cheng, X., Ji, K., Zhang, J., Chen, Y., & Shi, G. (UC Berkeley)</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2309.14341" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>自回归视差深度场端到端几何压缩映射。</li>
+                    <li><strong>核心管线：</strong>直接处理机载原始视差深度图，通过双阶段架构提取几何先验，Actor 自回归计算具有大倾角与滞空周期的 PD 目标，实机飞越断崖、攀爬高墙。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-imitation">
+            <div class="time-badge">2024 <span class="stage-tag">Imitation</span></div>
+            <div class="card">
+                <div class="paper-title">"Learning agile soccer skills for a bipedal robot with computer vision"</div>
+                <div class="paper-author">Haarnoja, T., et al. (Google DeepMind)</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>自对抗博弈 (<span class="term">Self-Play</span>) 与多技能分层重组。</li>
+                    <li><strong>核心管线：</strong>底层策略通过大规模对抗模仿预训练掌握截球、跃起等原子技能；高层网络在多智能体自我博弈对抗中高频战术决策，展现了极佳的双足柔性变向与防伤跌落。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-foundation">
+            <div class="time-badge">2024 <span class="stage-tag">Foundation</span></div>
+            <div class="card">
+                <div class="paper-title">"Universal Humanoid Motion Representations for Physics-Based Control"</div>
+                <div class="paper-author">Luo, Z., Cao, J., Merel, J., Winkler, A., Huang, J., Kitani, K., & Xu, W.</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2310.04582" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>无判别器约束的变分连续动作隐式流形大模型 (<span class="term">PULSE</span>)。</li>
+                    <li><strong>核心管线：</strong>构建 32 维、覆盖 99.8% 全量 AMASS 数据集的条件变分自编码器。下层网络策略在上层强化重组时直接在隐流形内高频平滑插值，彻底根除了动作转换时的关节抖动。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-foundation">
+            <div class="time-badge">2024 <span class="stage-tag">Foundation</span></div>
+            <div class="card">
+                <div class="paper-title">"Humanoid Locomotion as Next Token Prediction"</div>
+                <div class="paper-author">Radosavovic, I., et al. (UC Berkeley / Digit)</div>
+                <a class="link-btn" href="https://arxiv.org/abs/2402.19469" target="_blank">🔗 arXiv 直达</a>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>状态-动作标量化自回归自注意力流 (<span class="term">Causal Transformer</span>)。</li>
+                    <li><strong>核心管线：</strong>摒弃马尔可夫单帧假设。将本体感受反馈、历史关节指令离散化并量化为 Token 序列，通过因果 Transformer 自回归预测。在大大规模混合数据流下展现出极强零样本泛化。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-foundation">
+            <div class="time-badge">2026 <span class="stage-tag">Foundation</span></div>
+            <div class="card">
+                <div class="paper-title">"SONIC: Supersizing Motion Tracking for Natural Humanoid Whole-Body Control"</div>
+                <div class="paper-author">NVIDIA Team (GEAR Team)</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>全身力控网络规模与异构构型映射的 <span class="term">Scaling Law</span>。</li>
+                    <li><strong>核心管线：</strong>参数扩展至 42M，吞噬全自由度动作流超 1 亿帧。核心创新在于定义了归一化虚拟隐式 Token 空间，无需下游微调即可跨平台零样本实时重定向至 H1、G1 异构实机。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="timeline-item stage-foundation">
+            <div class="time-badge">2026 <span class="stage-tag">Foundation</span></div>
+            <div class="card">
+                <div class="paper-title">"BFM-Zero: A Promptable Behavioral Foundation Model for Humanoid Control"</div>
+                <div class="paper-author">Meta / LeCAR Lab</div>
+                <ul class="tech-details">
+                    <li><strong>理论机制：</strong>无监督强化学习 + 可提示化目标条件联合嵌入空间 (<span class="term">Forward-Backward</span>)。</li>
+                    <li><strong>核心管线：</strong>通过前向-后向表征将未来可涌现的行为状态与下游指令奖励投射至共享流形。运行时用户给予任意轨迹提示项(Prompt)，底座零样本在线、即时解算输出符合全身力学约束的长程控制流。</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
